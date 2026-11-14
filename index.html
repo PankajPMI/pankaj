@@ -382,7 +382,6 @@
 
         function initFirebase() {
             try {
-                // Hardcoded Firebase Config for automatic multi-device cloud sync
                 const firebaseConfig = {
                     apiKey: "AIzaSyBjExGHJ5R6Hs7uJ9KgF13D_1elk15Nd0",
                     authDomain: "family-space-portal.firebaseapp.com",
@@ -398,7 +397,6 @@
                 db = firebase.firestore();
                 updateCloudStatus(true);
 
-                // Real-time listener across all devices
                 db.collection("family_space").doc("data").onSnapshot((doc) => {
                     if (doc.exists) {
                         const cloudData = doc.data();
@@ -618,6 +616,7 @@
                 renderDirectory();
                 return;
             }
+            document.getElementById('admin-modal').classList.add('hidden');
             document.getElementById('admin-modal').classList.remove('hidden');
         }
 
@@ -671,7 +670,7 @@
                 address: document.getElementById('form-address').value,
                 link: document.getElementById('form-link').value,
                 photo: document.getElementById('form-photo').value,
-                tags: [document.getElementById('form-tag'].value]
+                tags: [document.getElementById('form-tag').value]
             };
 
             if (idx === -1) {
