@@ -2,8 +2,16 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAMILY SPACE — Meena Family Live Directory & Digital Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#060910" id="theme-color-meta">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAMILY SPACE">
+    <title>FAMILY SPACE v0.1 — Meena Family Live Directory</title>
+
+    <!-- Dynamic PWA Manifest Setup -->
+    <link rel="manifest" id="pwa-manifest">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232563eb'/><text x='50' y='67' font-family='sans-serif' font-size='48' font-weight='bold' fill='white' text-anchor='middle'>FS</text></svg>">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,180 +31,303 @@
         }
     </script>
 
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Leaflet CSS -->
+    <!-- Leaflet & MarkerCluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <!-- Export Libraries: SheetJS (Excel) & jsPDF + AutoTable (PDF) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        :root {
+            --bg-main: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --glass-bg: rgba(255, 255, 255, 0.82);
+            --glass-border: rgba(15, 23, 42, 0.08);
+            --glass-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            --card-sub-bg: rgba(241, 245, 249, 0.85);
+            --input-bg: #ffffff;
+            --input-border: rgba(15, 23, 42, 0.14);
+        }
+
+        html.dark {
+            --bg-main: #060910;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.5);
+            --card-sub-bg: rgba(255, 255, 255, 0.04);
+            --input-bg: rgba(15, 23, 42, 0.85);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overscroll-behavior-y: contain;
+        }
+
         .glass {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: var(--glass-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
         }
-        .light .glass {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.45);
+            box-shadow: 0 20px 35px -15px rgba(59, 130, 246, 0.22);
         }
+
+        .sub-surface {
+            background: var(--card-sub-bg);
+            border: 1px solid var(--glass-border);
+        }
+
+        .theme-input {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+        }
+
         #digital-map {
             height: 480px;
             width: 100%;
             border-radius: 1.25rem;
             z-index: 1;
         }
+
         .leaflet-popup-content-wrapper {
-            border-radius: 12px !important;
+            border-radius: 14px !important;
             padding: 4px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
         }
         .leaflet-popup-content {
             margin: 10px 12px !important;
             font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
-        .custom-div-icon { background: transparent; border: none; }
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+
+        /* Custom Cluster Styling */
+        .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+            background-color: rgba(59, 130, 246, 0.28) !important;
+        }
+        .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+            background: linear-gradient(135deg, #2563eb, #4f46e5) !important;
+            color: #ffffff !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-weight: 800 !important;
+            border: 2px solid #ffffff;
+        }
+
+        /* Shimmer Skeleton */
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
         .skeleton {
-            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%);
+            background: linear-gradient(90deg, rgba(148,163,184,0.12) 25%, rgba(148,163,184,0.24) 50%, rgba(148,163,184,0.12) 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            animation: shimmer 1.5s infinite linear;
         }
+
+        /* Toast Animations */
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .toast-enter {
+            animation: toastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Hide scrollbars on horizontal pill strip */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-[#060910] text-slate-100 dark:bg-[#060910] dark:text-slate-100 light:bg-slate-50 light:text-slate-900 min-h-screen pb-20 sm:pb-8 selection:bg-blue-500/40 transition-colors duration-300">
+<body class="min-h-screen pb-24 md:pb-8 selection:bg-blue-500/30">
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-20 sm:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <!-- Pull-to-Refresh Indicator -->
+    <div id="ptr-indicator" class="fixed top-0 left-0 right-0 z-[60] flex justify-center pointer-events-none transition-transform duration-200 -translate-y-full">
+        <div class="mt-3 px-4 py-2 rounded-full glass text-xs font-semibold flex items-center gap-2 shadow-xl border border-blue-500/30">
+            <i id="ptr-icon" class="fa-solid fa-arrow-down text-blue-500 transition-transform duration-200"></i>
+            <span id="ptr-text">Pull to refresh</span>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto z-[80] flex flex-col items-center md:items-end gap-2 pointer-events-none"></div>
 
     <!-- HEADER -->
-    <header class="sticky top-0 z-40 glass border-b border-white/5 px-4 lg:px-8 py-3.5">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <header class="sticky top-0 z-40 glass border-b px-4 lg:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-blue-500/30">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-base sm:text-lg shadow-lg shadow-blue-500/30 shrink-0">
                     FS
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-lg tracking-tight">FAMILY SPACE</h1>
-                        <span id="cloud-status-badge" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="font-extrabold text-base sm:text-lg tracking-tight">FAMILY SPACE</h1>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500">v0.1</span>
+                        <span id="cloud-status-badge" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/25 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                             <span id="cloud-status-text">Connecting...</span>
                         </span>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-400 light:text-slate-500 hidden sm:block">Meena Family Live Directory & Digital Map • 2026</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Meena Family Live Directory • 2026</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <button onclick="findNearMe()" class="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 dark:bg-white/5 light:bg-slate-200 text-xs font-medium border border-white/10 dark:border-white/10 light:border-slate-300 transition flex items-center gap-2">
-                    <i class="fa-solid fa-location-crosshairs text-blue-400"></i>
+                <!-- PWA Install Button (hidden unless installable) -->
+                <button id="pwa-install-btn" onclick="installPWA()" class="hidden px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">Install App</span>
+                </button>
+
+                <button onclick="findNearMe()" id="near-me-btn" class="px-3 sm:px-3.5 py-2 rounded-xl sub-surface hover:border-blue-500/40 text-xs font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-location-crosshairs text-blue-500"></i>
                     <span class="hidden sm:inline">Near Me</span>
                 </button>
-                <button onclick="openAdminModal()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
+
+                <button onclick="openAdminModal()" class="px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i>
                     <span id="admin-btn-text">Admin</span>
                 </button>
-                <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 dark:bg-white/5 light:bg-slate-200 border border-white/10 dark:border-white/10 light:border-slate-300 flex items-center justify-center text-slate-300 dark:text-slate-300 light:text-slate-700 transition">
-                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+
+                <button onclick="toggleTheme()" id="theme-toggle-btn" title="Switch Dark/Light Mode" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sub-surface hover:border-blue-500/40 flex items-center justify-center transition">
+                    <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 sm:py-8 space-y-7">
 
         <!-- LIVE NOTICE -->
         <div class="glass rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-l-4 border-l-blue-500">
             <div class="flex items-start gap-3">
-                <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
                     <i class="fa-solid fa-bullhorn text-sm"></i>
                 </div>
                 <div>
-                    <span class="text-[10px] uppercase tracking-widest font-bold text-blue-400">Live Notice</span>
-                    <p id="notice-display-text" class="text-sm font-medium text-slate-200 dark:text-slate-200 light:text-slate-700 mt-0.5 leading-relaxed">
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-blue-500">Live Notice</span>
+                    <p id="notice-display-text" class="text-sm font-medium mt-0.5 leading-relaxed">
                         Welcome to FAMILY SPACE 2026! Click any marker or card for directions, photos & WhatsApp share.
                     </p>
                 </div>
             </div>
-            <button onclick="openNoticeModal()" id="edit-notice-btn" class="hidden text-xs text-blue-400 hover:text-blue-300 font-semibold underline shrink-0">
-                Update Notice
+            <button onclick="editNoticePrompt()" id="edit-notice-btn" class="hidden text-xs text-blue-500 hover:underline font-semibold shrink-0">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Update Notice
             </button>
         </div>
 
         <!-- HERO + STATS -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-8 glass rounded-3xl p-7 sm:p-9 relative overflow-hidden">
+            <div class="lg:col-span-8 glass rounded-3xl p-6 sm:p-9 relative overflow-hidden">
                 <div class="absolute -right-16 -bottom-16 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative">
-                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-blue-400 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                        Private Family Directory
-                    </span>
-                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-5 mb-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-blue-500 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            Private Family Directory
+                        </span>
+                        <span id="near-me-active-pill" class="hidden inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-500 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <i class="fa-solid fa-compass"></i> Sorted by Distance
+                            <button onclick="clearNearMeSort()" class="ml-1 hover:text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                        </span>
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-4 mb-3">
                         Our Family <span class="text-red-500">❤️</span>
                     </h2>
-                    <p class="text-slate-300 dark:text-slate-300 light:text-slate-600 text-sm sm:text-base max-w-lg leading-relaxed">
+                    <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-lg leading-relaxed">
                         One family. Multiple cities. One connection.<br>
                         Explore members, houses & sacred places live across Rajasthan.
                     </p>
-                    <div class="flex flex-wrap gap-3 mt-8">
-                        <button onclick="scrollToDirectory()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
+                    <div class="flex flex-wrap gap-2.5 sm:gap-3 mt-7">
+                        <button onclick="scrollToSection('directory-section')" class="px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
                             <i class="fa-solid fa-magnifying-glass"></i> Search Directory
                         </button>
-                        <button onclick="openTripPlannerModal()" class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 dark:bg-white/5 light:bg-slate-200 text-sm font-semibold border border-white/10 dark:border-white/10 light:border-slate-300 transition flex items-center gap-2">
-                            <i class="fa-solid fa-route text-indigo-400"></i> Trip Planner
+                        <button onclick="openRoutePlanner()" class="px-4 sm:px-5 py-2.5 rounded-xl sub-surface hover:border-blue-500/40 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-route text-indigo-500"></i> Trip Planner
                         </button>
+                        <div class="relative inline-block">
+                            <button onclick="toggleExportMenu()" class="px-4 py-2.5 rounded-xl sub-surface hover:border-emerald-500/40 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                                <i class="fa-solid fa-file-export text-emerald-500"></i> Export
+                                <i class="fa-solid fa-chevron-down text-[10px] opacity-70"></i>
+                            </button>
+                            <div id="export-dropdown" class="hidden absolute left-0 mt-2 w-44 rounded-2xl glass shadow-xl border p-1.5 z-30">
+                                <button onclick="exportToExcel()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-500/10 text-xs font-semibold flex items-center gap-2.5 transition">
+                                    <i class="fa-solid fa-file-excel text-emerald-500 text-sm"></i> Export Excel (.xlsx)
+                                </button>
+                                <button onclick="exportToPDF()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-500/10 text-xs font-semibold flex items-center gap-2.5 transition">
+                                    <i class="fa-solid fa-file-pdf text-red-500 text-sm"></i> Export PDF (.pdf)
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-4 grid grid-cols-2 gap-4">
-                <div class="glass rounded-2xl p-5 flex flex-col justify-between">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center">
+                <div class="glass rounded-2xl p-5 flex flex-col justify-between card-hover">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center">
                         <i class="fa-solid fa-users"></i>
                     </div>
                     <div>
                         <h3 id="stat-members" class="text-3xl font-extrabold mt-3">10</h3>
-                        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Members</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Members</p>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-5 flex flex-col justify-between">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                <div class="glass rounded-2xl p-5 flex flex-col justify-between card-hover">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
                         <i class="fa-solid fa-city"></i>
                     </div>
                     <div>
                         <h3 id="stat-cities" class="text-3xl font-extrabold mt-3">5</h3>
-                        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Cities</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Cities</p>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-5 col-span-2 flex flex-col justify-between">
+                <div class="glass rounded-2xl p-5 col-span-2 flex flex-col justify-between card-hover">
                     <div class="flex items-center justify-between">
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center">
                             <i class="fa-solid fa-map-pin"></i>
                         </div>
-                        <span class="text-xs text-emerald-400 font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">Live Sync</span>
+                        <span class="text-xs text-emerald-500 font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">Live Sync</span>
                     </div>
                     <div>
                         <h3 id="stat-locations" class="text-3xl font-extrabold mt-3">10</h3>
-                        <p id="last-synced-text" class="text-xs text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Last synced: Just now</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Verified Locations</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- FEATURED + EVENTS -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div id="events-section" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 glass rounded-3xl p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="font-bold text-lg flex items-center gap-2">
                         <i class="fa-solid fa-star text-amber-400"></i> Featured Locations
                     </h3>
-                    <span class="text-xs text-slate-400">Heritage & Core Spots</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Heritage & Core Spots</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="featured-locations-container"></div>
             </div>
@@ -204,28 +335,28 @@
             <div class="glass rounded-3xl p-6 flex flex-col">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="font-bold text-lg flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-days text-blue-400"></i> Events Radar
+                        <i class="fa-solid fa-calendar-days text-blue-500"></i> Events Radar
                     </h3>
-                    <span class="text-xs text-red-400 font-semibold px-2.5 py-0.5 rounded-full bg-red-500/10">Live</span>
+                    <span class="text-xs text-red-500 font-semibold px-2.5 py-0.5 rounded-full bg-red-500/10">Live</span>
                 </div>
                 <div class="space-y-3 flex-1">
-                    <div class="p-3.5 rounded-xl bg-white/5 dark:bg-white/5 light:bg-slate-100 border border-white/5 dark:border-white/5 light:border-slate-200 flex items-center justify-between">
+                    <div class="p-3.5 rounded-xl sub-surface flex items-center justify-between">
                         <div>
                             <h4 class="text-sm font-semibold">Family Annual Gathering</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">Central House, Bamanwas</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Central House, Bamanwas</p>
                         </div>
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-500/15 text-blue-400">31d</span>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-500/15 text-blue-500">31d</span>
                     </div>
-                    <div class="p-3.5 rounded-xl bg-white/5 dark:bg-white/5 light:bg-slate-100 border border-white/5 dark:border-white/5 light:border-slate-200 flex items-center justify-between">
+                    <div class="p-3.5 rounded-xl sub-surface flex items-center justify-between">
                         <div>
                             <h4 class="text-sm font-semibold">Bamanwas Reunion</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">Ancestral Roots</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Ancestral Roots</p>
                         </div>
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-400">61d</span>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-500">61d</span>
                     </div>
                 </div>
-                <div id="admin-quick-actions" class="mt-6 pt-5 border-t border-white/5 dark:border-white/5 light:border-slate-200 hidden">
-                    <button onclick="openAddMemberModal()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                <div id="admin-quick-actions" class="mt-6 pt-5 border-t border-slate-200 dark:border-white/5 hidden space-y-2">
+                    <button onclick="openAddMemberModal()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus"></i> Add Member / House
                     </button>
                 </div>
@@ -233,148 +364,214 @@
         </div>
 
         <!-- MAP SECTION -->
-        <div class="glass rounded-3xl p-6">
+        <div id="map-section" class="glass rounded-3xl p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                 <div>
                     <h3 class="font-bold text-lg flex items-center gap-2">
-                        <i class="fa-solid fa-map-location-dot text-blue-400"></i> Live Family Map — Rajasthan
+                        <i class="fa-solid fa-map-location-dot text-blue-500"></i> Live Family Map — Rajasthan
                     </h3>
-                    <p class="text-xs text-slate-400 mt-1">Click any marker for details, Google Maps directions & WhatsApp share</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Clustered markers with member photos • Click any pin for directions & share</p>
                 </div>
-                <div class="flex flex-wrap gap-2" id="map-filter-pills"></div>
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" id="map-filter-pills"></div>
             </div>
             <div id="digital-map"></div>
         </div>
 
-        <!-- STICKY SEARCH & DIRECTORY -->
+        <!-- DIRECTORY -->
         <div id="directory-section" class="glass rounded-3xl p-6">
-            <div class="sticky top-20 z-30 glass py-3 mb-6 -mx-6 px-6 border-y border-white/5">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h3 class="font-bold text-xl flex items-center gap-2">
-                            <i class="fa-solid fa-address-book text-blue-400"></i> Family Directory
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Browse all members & residences</p>
+            <!-- Sticky Search Bar Header -->
+            <div class="sticky top-[68px] z-30 -mx-2 px-2 py-3 mb-5 rounded-2xl glass backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h3 class="font-bold text-lg sm:text-xl flex items-center gap-2">
+                        <i class="fa-solid fa-address-book text-blue-500"></i> Family Directory
+                        <span id="filtered-count-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-500">10</span>
+                    </h3>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="search-input" oninput="renderDirectory()" placeholder="Search name, city, tag..."
+                            class="w-full pl-9 pr-8 py-2.5 rounded-xl theme-input text-xs placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                        <button id="clear-search-btn" onclick="clearFilters()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 text-xs">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
                     </div>
-                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                        <div class="relative w-full sm:w-64">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="search-input" oninput="renderDirectory()" placeholder="Search name, city, tag..."
-                                class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900/70 dark:bg-slate-900/70 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs text-slate-100 dark:text-slate-100 light:text-slate-900 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
-                        </div>
-                        <select id="city-filter" onchange="renderDirectory()"
-                            class="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-slate-900/70 dark:bg-slate-900/70 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs text-slate-200 dark:text-slate-200 light:text-slate-800 focus:outline-none focus:border-blue-500 transition">
-                            <option value="All">All Cities</option>
-                        </select>
-                    </div>
+                    <select id="city-filter" onchange="renderDirectory()"
+                        class="w-full sm:w-auto px-3.5 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500">
+                        <option value="All">All Cities</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- DIRECTORY GRID -->
-            <div id="directory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Skeleton Sinks -->
-                <div class="glass rounded-2xl p-5 h-48 skeleton"></div>
-                <div class="glass rounded-2xl p-5 h-48 skeleton"></div>
-                <div class="glass rounded-2xl p-5 h-48 skeleton"></div>
-            </div>
+            <!-- Directory Grid / Skeletons -->
+            <div id="directory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
     </main>
 
-    <!-- MOBILE BOTTOM NAVIGATION -->
-    <div class="sm:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-white/10 py-2.5 px-6 flex items-center justify-around bg-[#0a0f1a]/90 backdrop-blur-xl">
-        <a href="#directory-section" class="flex flex-col items-center text-slate-400 hover:text-blue-400 text-[10px] font-semibold">
-            <i class="fa-solid fa-address-book text-base mb-1"></i> Directory
-        </a>
-        <a href="#digital-map" class="flex flex-col items-center text-slate-400 hover:text-blue-400 text-[10px] font-semibold">
-            <i class="fa-solid fa-map text-base mb-1"></i> Map
-        </a>
-        <button onclick="openTripPlannerModal()" class="flex flex-col items-center text-slate-400 hover:text-blue-400 text-[10px] font-semibold">
-            <i class="fa-solid fa-route text-base mb-1"></i> Trip
-        </button>
-        <button onclick="openAdminModal()" class="flex flex-col items-center text-slate-400 hover:text-blue-400 text-[10px] font-semibold">
-            <i class="fa-solid fa-shield-halved text-base mb-1"></i> Admin
-        </button>
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="max-w-7xl mx-auto px-4 lg:px-8 py-10 text-center text-xs text-slate-500 border-t border-white/5 mt-8">
-        <p>FAMILY SPACE • Secured Live Family Portal • Meena Family © 2026</p>
+    <!-- FOOTER WITH LAST SYNCED TIME -->
+    <footer class="max-w-7xl mx-auto px-4 lg:px-8 py-8 text-center text-xs text-slate-500 border-t border-slate-200 dark:border-white/5 mt-6 space-y-1.5">
+        <p class="font-medium">FAMILY SPACE v0.1 • Secured Live Family Portal • Meena Family © 2026</p>
+        <p id="last-synced-footer" class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+            <i class="fa-regular fa-clock text-blue-500"></i> Last synced: Connecting...
+        </p>
     </footer>
 
-    <!-- ADMIN MODAL -->
-    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass rounded-3xl p-6 max-w-md w-full border border-white/10 shadow-2xl">
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-blue-400"></i> Admin Access
-                </h3>
-                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <p class="text-xs text-slate-300 dark:text-slate-300 light:text-slate-600 mb-5 leading-relaxed">
-                Enter the 4-digit admin passcode (<span class="font-mono text-blue-400 font-bold">2002</span>) to unlock editing, member deletions & cloud controls.
-            </p>
-            <div class="space-y-4">
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t px-2 py-2 flex items-center justify-around">
+        <button onclick="scrollToSection('directory-section')" id="nav-btn-directory" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-blue-500 font-semibold text-[11px]">
+            <i class="fa-solid fa-address-book text-base"></i>
+            <span>Directory</span>
+        </button>
+        <button onclick="scrollToSection('map-section')" id="nav-btn-map" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-slate-500 dark:text-slate-400 font-medium text-[11px]">
+            <i class="fa-solid fa-map-location-dot text-base"></i>
+            <span>Map</span>
+        </button>
+        <button onclick="scrollToSection('events-section')" id="nav-btn-events" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-slate-500 dark:text-slate-400 font-medium text-[11px]">
+            <i class="fa-solid fa-calendar-days text-base"></i>
+            <span>Events</span>
+        </button>
+        <button onclick="openAdminModal()" id="nav-btn-admin" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-slate-500 dark:text-slate-400 font-medium text-[11px]">
+            <i class="fa-solid fa-shield-halved text-base"></i>
+            <span id="mobile-admin-label">Admin</span>
+        </button>
+    </nav>
+
+    <!-- IMAGE LIGHTBOX MODAL -->
+    <div id="lightbox-modal" onclick="closeLightbox()" class="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="relative max-w-lg w-full rounded-3xl overflow-hidden glass border border-white/15 shadow-2xl">
+            <button onclick="closeLightbox()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center z-10 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="lightbox-img" src="" alt="Member Photo" class="w-full max-h-[70vh] object-cover bg-slate-900">
+            <div class="p-4 flex items-center justify-between">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Passcode PIN</label>
-                    <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••"
-                        class="w-full px-4 py-3.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-center tracking-[0.5em] text-lg font-mono text-slate-100 dark:text-slate-100 light:text-slate-900 focus:outline-none focus:border-blue-500 transition">
+                    <h4 id="lightbox-title" class="font-bold text-base"></h4>
+                    <p id="lightbox-subtitle" class="text-xs text-slate-400 mt-0.5"></p>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="verifyAdminPin()" class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-xs text-white shadow-lg shadow-blue-600/25 transition">
-                        Unlock Admin
-                    </button>
-                </div>
+                <a id="lightbox-map-link" href="#" target="_blank" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition">
+                    Open Maps →
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- MEMBER MODAL (Add / Edit) -->
-    <div id="member-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass rounded-3xl p-6 max-w-lg w-full border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <!-- TRIP PLANNER MODAL -->
+    <div id="trip-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-route text-indigo-500"></i> Family Trip Planner
+                </h3>
+                <button onclick="closeTripModal()" class="text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Starting Location</label>
+                    <select id="trip-from" onchange="calculateTripDistance()" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-xs"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Destination Location</label>
+                    <select id="trip-to" onchange="calculateTripDistance()" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-xs"></select>
+                </div>
+                <div id="trip-result-box" class="p-4 rounded-2xl sub-surface text-center space-y-1">
+                    <p class="text-xs text-slate-500">Estimated Road Distance</p>
+                    <h4 id="trip-distance-val" class="text-2xl font-extrabold text-blue-500">-- km</h4>
+                    <p id="trip-time-val" class="text-xs text-slate-400">Select two locations above</p>
+                </div>
+                <a id="trip-gmaps-btn" href="https://maps.google.com" target="_blank" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg transition">
+                    <i class="fa-solid fa-diamond-turn-right"></i> Open Route in Google Maps
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-blue-500"></i> Admin Access
+                </h3>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-300 mb-5 leading-relaxed">
+                Enter the 4-digit admin passcode (<span class="font-mono text-blue-500 font-bold">2002</span>) to unlock editing, deletions, private notes & member additions.
+            </p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Passcode PIN</label>
+                    <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter') verifyAdminPin()"
+                        class="w-full px-4 py-3.5 rounded-xl theme-input text-center tracking-[0.5em] text-lg font-mono focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <button onclick="verifyAdminPin()" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/25 transition">
+                    Unlock Admin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEMBER MODAL -->
+    <div id="member-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h3 id="member-modal-title" class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-emerald-400"></i> Add Member / House
+                    <i class="fa-solid fa-user-plus text-emerald-500"></i> Add Member / House
                 </h3>
-                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-white transition">
+                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-red-500 transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
             <form id="member-form" onsubmit="saveMemberForm(event)" class="space-y-4">
                 <input type="hidden" id="edit-index" value="-1">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Name / Title</label>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Name / Title *</label>
                     <input type="text" id="form-name" required placeholder="e.g. Roop Narayan Meena Ji"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs focus:outline-none focus:border-blue-500 transition">
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Address / City</label>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Address / City *</label>
                     <input type="text" id="form-address" required placeholder="e.g. Jaipur, Rajasthan"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs focus:outline-none focus:border-blue-500 transition">
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Google Maps Link</label>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Google Maps Link *</label>
                     <input type="url" id="form-link" required placeholder="https://maps.app.goo.gl/..."
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs focus:outline-none focus:border-blue-500 transition">
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500 transition">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">City Tag</label>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">City Tag *</label>
                         <input type="text" id="form-tag" required placeholder="e.g. Jaipur"
-                            class="w-full px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs focus:outline-none focus:border-blue-500 transition">
+                            class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500 transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Photo URL / Image Link</label>
-                        <input type="url" id="form-photo" placeholder="https://... (Optional)"
-                            class="w-full px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-xs focus:outline-none focus:border-blue-500 transition">
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Photo URL or Upload</label>
+                        <div class="flex gap-1.5">
+                            <input type="text" id="form-photo" placeholder="https://... or upload"
+                                class="w-full px-3 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500 transition">
+                            <label class="px-3 py-2.5 rounded-xl bg-blue-600/15 text-blue-500 hover:bg-blue-600/25 cursor-pointer text-xs font-semibold flex items-center justify-center shrink-0" title="Upload Image from Gallery">
+                                <i class="fa-solid fa-image"></i>
+                                <input type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
+                            </label>
+                        </div>
                     </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-amber-500 mb-1.5">
+                        <i class="fa-solid fa-lock mr-1"></i> Admin Private Note (Only visible when Admin is unlocked)
+                    </label>
+                    <textarea id="form-private-note" rows="2" placeholder="Phone number, landmark details, or private family note..."
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-amber-500 transition"></textarea>
                 </div>
                 <div class="flex gap-3 pt-2">
-                    <button type="submit" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-semibold text-xs text-white shadow-lg shadow-emerald-600/25 transition">
+                    <button type="submit" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 transition">
                         Save & Sync Live
                     </button>
-                    <button type="button" onclick="closeMemberModal()" class="px-5 py-3 rounded-xl bg-white/5 dark:bg-white/5 light:bg-slate-200 font-semibold text-xs border border-white/10 dark:border-white/10 light:border-slate-300 transition">
+                    <button type="button" onclick="closeMemberModal()" class="px-5 py-3 rounded-xl sub-surface font-semibold text-xs transition">
                         Cancel
                     </button>
                 </div>
@@ -382,73 +579,26 @@
         </div>
     </div>
 
-    <!-- NOTICE EDIT MODAL -->
-    <div id="notice-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass rounded-3xl p-6 max-w-md w-full border border-white/10 shadow-2xl">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-bullhorn text-blue-400"></i> Update Live Notice</h3>
-                <button onclick="closeNoticeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div class="space-y-4">
-                <textarea id="notice-input" rows="3" class="w-full p-3 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 text-xs focus:outline-none focus:border-blue-500" placeholder="Enter new notice..."></textarea>
-                <div class="flex gap-3">
-                    <button onclick="saveNewNotice()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white shadow-lg">Save Notice</button>
-                    <button onclick="closeNoticeModal()" class="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TRIP PLANNER MODAL -->
-    <div id="trip-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass rounded-3xl p-6 max-w-md w-full border border-white/10 shadow-2xl">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-route text-indigo-400"></i> Trip Route Planner</h3>
-                <button onclick="closeTripModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Starting Point</label>
-                    <select id="trip-from" class="w-full p-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 text-xs"></select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Destination Point</label>
-                    <select id="trip-to" class="w-full p-2.5 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 border border-white/10 text-xs"></select>
-                </div>
-                <div id="trip-result" class="hidden p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs space-y-1"></div>
-                <div class="flex gap-3 pt-2">
-                    <button onclick="calculateTripRoute()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-lg">Calculate & Open Map</button>
-                    <button onclick="closeTripModal()" class="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <script>
+        // Default Family Data (Unchanged structure + optional photo, privateNote, lastVisited)
         let familyData = [
-            { name: "Roop Narayan Meena Ji", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/ufqfvXZsrnxZVans9", tags: ["Jaipur"] },
-            { name: "Brij Mohan Meena Ji", photo: "", address: "Dausa, Rajasthan", link: "https://maps.app.goo.gl/HonrgpAunj9xkSyw8", tags: ["Dausa", "Home"] },
-            { name: "OM Prakash Meena Ji", photo: "", address: "Jaisalmer, Rajasthan", link: "https://maps.app.goo.gl/A3aDnGWETidrfcAP8", tags: ["Jaisalmer", "Home"] },
-            { name: "Holsingh Meena Ji", photo: "", address: "Gangapur, Rajasthan", link: "https://maps.app.goo.gl/CtAFeX889VmSavFu7", tags: ["Gangapur"] },
-            { name: "Snehlata Meena", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/3Rk4YZ8wkxt6vDw87", tags: ["Jaipur"] },
-            { name: "Hemlata Meena", photo: "", address: "Gangapur, Rajasthan", link: "https://maps.app.goo.gl/Hnaq8q8zh8MmqHBE9", tags: ["Gangapur"] },
-            { name: "Sapana Meena", photo: "", address: "Kota, Rajasthan", link: "https://maps.app.goo.gl/Q2Us5Xj3CV85MoZD6", tags: ["Kota"] },
-            { name: "Lokesh Meena", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/Wcj1mEityzR9Bpme6", tags: ["Jaipur"] },
-            { name: "Devta", photo: "", address: "Devta Pujan Sthal, Rajasthan", link: "https://maps.app.goo.gl/4wYRcD9qDcB6JyLg8", tags: ["Devta Pujan Sthal"] },
-            { name: "Central House", photo: "", address: "Central House, Bamanwas", link: "https://maps.app.goo.gl/PyVxnRkVr7Z179Bn8", tags: ["Central House"] }
+            { name: "Roop Narayan Meena Ji", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/ufqfvXZsrnxZVans9", tags: ["Jaipur"], privateNote: "", lastVisited: "" },
+            { name: "Brij Mohan Meena Ji", photo: "", address: "Dausa, Rajasthan", link: "https://maps.app.goo.gl/HonrgpAunj9xkSyw8", tags: ["Dausa", "Home"], privateNote: "", lastVisited: "" },
+            { name: "OM Prakash Meena Ji", photo: "", address: "Jaisalmer, Rajasthan", link: "https://maps.app.goo.gl/A3aDnGWETidrfcAP8", tags: ["Jaisalmer", "Home"], privateNote: "", lastVisited: "" },
+            { name: "Holsingh Meena Ji", photo: "", address: "Gangapur, Rajasthan", link: "https://maps.app.goo.gl/CtAFeX889VmSavFu7", tags: ["Gangapur"], privateNote: "", lastVisited: "" },
+            { name: "Snehlata Meena", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/3Rk4YZ8wkxt6vDw87", tags: ["Jaipur"], privateNote: "", lastVisited: "" },
+            { name: "Hemlata Meena", photo: "", address: "Gangapur, Rajasthan", link: "https://maps.app.goo.gl/Hnaq8q8zh8MmqHBE9", tags: ["Gangapur"], privateNote: "", lastVisited: "" },
+            { name: "Sapana Meena", photo: "", address: "Kota, Rajasthan", link: "https://maps.app.goo.gl/Q2Us5Xj3CV85MoZD6", tags: ["Kota"], privateNote: "", lastVisited: "" },
+            { name: "Lokesh Meena", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/Wcj1mEityzR9Bpme6", tags: ["Jaipur"], privateNote: "", lastVisited: "" },
+            { name: "Devta", photo: "", address: "Devta Pujan Sthal, Rajasthan", link: "https://maps.app.goo.gl/4wYRcD9qDcB6JyLg8", tags: ["Devta Pujan Sthal"], privateNote: "", lastVisited: "" },
+            { name: "Central House", photo: "", address: "Central House, Bamanwas", link: "https://maps.app.goo.gl/PyVxnRkVr7Z179Bn8", tags: ["Central House"], privateNote: "", lastVisited: "" }
         ];
-
-        let isAdmin = false;
-        let map = null;
-        let markersLayer = null;
-        let routeLineLayer = null;
-        let db = null;
-        let lastSyncTime = new Date();
 
         const cityCoords = {
             "Jaipur": [26.9124, 75.7873],
@@ -460,62 +610,118 @@
             "Central House": [26.4500, 76.6000]
         };
 
+        let isAdmin = false;
+        let isLoading = true;
+        let activeMapFilter = 'All';
+        let userCoords = null;
+        let map = null;
+        let tileLayer = null;
+        let clusterGroup = null;
+        let db = null;
+        let deferredInstallPrompt = null;
+
+        // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             initTheme();
-            initFirebase();
+            setupPWA();
+            setupPullToRefresh();
+            renderSkeletons();
             initMap();
-            renderAll();
-            setInterval(updateLastSyncedLabel, 30000);
+            initFirebase();
         });
 
-        // TOAST SYSTEM
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bgColors = { success: 'bg-emerald-600', error: 'bg-rose-600', info: 'bg-blue-600' };
-            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl text-white text-xs font-semibold shadow-xl flex items-center gap-2.5 ${bgColors[type] || bgColors.success} transition-all duration-300 translate-y-4 opacity-0`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'} text-sm"></i> <span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.remove('translate-y-4', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('translate-y-4', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-
-        // THEME HANDLING
+        // 1. Dark / Light Theme Proper Management
         function initTheme() {
             const savedTheme = localStorage.getItem('family_space_theme') || 'dark';
-            if (savedTheme === 'light') {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-                document.getElementById('theme-icon').className = "fa-solid fa-sun text-amber-400";
-            } else {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-                document.getElementById('theme-icon').className = "fa-solid fa-moon";
-            }
+            applyTheme(savedTheme);
         }
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
-            if (isDark) {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-                localStorage.setItem('family_space_theme', 'light');
-                document.getElementById('theme-icon').className = "fa-solid fa-sun text-amber-400";
-                showToast("Switched to Light Mode", "info");
-            } else {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-                localStorage.setItem('family_space_theme', 'dark');
-                document.getElementById('theme-icon').className = "fa-solid fa-moon";
-                showToast("Switched to Dark Mode", "info");
-            }
-            initMap();
+            const nextTheme = isDark ? 'light' : 'dark';
+            localStorage.setItem('family_space_theme', nextTheme);
+            applyTheme(nextTheme);
+            showToast(`Switched to ${nextTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
         }
 
-        // FIREBASE SYNC
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const meta = document.getElementById('theme-color-meta');
+
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+                meta.setAttribute('content', '#060910');
+            } else {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-slate-700';
+                meta.setAttribute('content', '#f8fafc');
+            }
+            updateMapTiles(theme);
+        }
+
+        function updateMapTiles(theme) {
+            if (!map) return;
+            if (tileLayer) map.removeLayer(tileLayer);
+
+            const tileUrl = theme === 'dark'
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+            tileLayer = L.tileLayer(tileUrl, {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap & CARTO'
+            }).addTo(map);
+        }
+
+        // 2. Toast Notification System (Replaces alert())
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const styles = {
+                success: { icon: 'fa-circle-check', color: 'text-emerald-500', border: 'border-emerald-500/30' },
+                error: { icon: 'fa-circle-exclamation', color: 'text-red-500', border: 'border-red-500/30' },
+                info: { icon: 'fa-circle-info', color: 'text-blue-500', border: 'border-blue-500/30' },
+                cloud: { icon: 'fa-cloud-arrow-up', color: 'text-emerald-500', border: 'border-emerald-500/30' }
+            };
+            const cfg = styles[type] || styles.info;
+
+            toast.className = `toast-enter pointer-events-auto glass px-4 py-3 rounded-2xl shadow-xl border ${cfg.border} flex items-center gap-2.5 text-xs font-semibold max-w-sm`;
+            toast.innerHTML = `<i class="fa-solid ${cfg.icon} ${cfg.color} text-sm"></i><span>${escapeHTML(message)}</span>`;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                toast.style.transition = 'all 0.25s ease';
+                setTimeout(() => toast.remove(), 260);
+            }, 3200);
+        }
+
+        // 3. Skeleton Loading Cards
+        function renderSkeletons() {
+            const grid = document.getElementById('directory-grid');
+            grid.innerHTML = Array(6).fill(0).map(() => `
+                <div class="glass rounded-2xl p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl skeleton"></div>
+                        <div class="w-16 h-8 rounded-lg skeleton"></div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="h-4 w-3/4 rounded skeleton"></div>
+                        <div class="h-3 w-1/2 rounded skeleton"></div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-200 dark:border-white/5 flex justify-between">
+                        <div class="h-5 w-16 rounded skeleton"></div>
+                        <div class="h-5 w-14 rounded skeleton"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 4. Firebase Initialization (Same Firestore collection/doc)
         function initFirebase() {
             try {
                 const firebaseConfig = {
@@ -531,26 +737,35 @@
                     firebase.initializeApp(firebaseConfig);
                 }
                 db = firebase.firestore();
-                updateCloudStatus(true);
 
                 db.collection("family_space").doc("data").onSnapshot((doc) => {
+                    isLoading = false;
                     if (doc.exists) {
                         const cloudData = doc.data();
-                        if (cloudData.members) familyData = cloudData.members;
+                        if (cloudData.members && Array.isArray(cloudData.members)) {
+                            familyData = cloudData.members;
+                        }
                         if (cloudData.notice) {
                             document.getElementById('notice-display-text').innerText = cloudData.notice;
                         }
-                        lastSyncTime = new Date();
+                        updateCloudStatus(true);
+                        updateLastSyncedTime();
                         renderAll();
-                        plotMapMarkers();
+                        plotMapMarkers(activeMapFilter);
                     } else {
                         syncToCloud();
                     }
-                }, err => {
+                }, (err) => {
+                    console.error("Snapshot error:", err);
+                    isLoading = false;
                     updateCloudStatus(false);
+                    renderAll();
                 });
             } catch (e) {
+                console.error("Firebase error:", e);
+                isLoading = false;
                 updateCloudStatus(false);
+                renderAll();
             }
         }
 
@@ -559,47 +774,67 @@
             const text = document.getElementById('cloud-status-text');
             if (connected) {
                 text.innerText = "Cloud Live Sync";
-                badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1.5";
+                badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 flex items-center gap-1.5";
             } else {
-                text.innerText = "Local Mode";
-                badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1.5";
+                text.innerText = "Offline / Local";
+                badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/25 flex items-center gap-1.5";
             }
         }
 
-        function updateLastSyncedLabel() {
-            const diffMins = Math.floor((new Date() - lastSyncTime) / 60000);
-            const label = diffMins <= 0 ? "Just now" : `${diffMins} mins ago`;
-            document.getElementById('last-synced-text').innerText = `Last synced: ${label}`;
+        function updateLastSyncedTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('last-synced-footer').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Last synced: Today at ${timeStr}`;
         }
 
-        // MAP SETUP
-        function initMap() {
-            if (map) { map.remove(); }
-            const isDark = document.documentElement.classList.contains('dark');
-            const tileUrl = isDark 
-                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
-                : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-
-            map = L.map('digital-map', { zoomControl: true, attributionControl: false }).setView([26.55, 75.8], 7);
-            L.tileLayer(tileUrl, { maxZoom: 19, attribution: '© CARTO & OpenStreetMap' }).addTo(map);
-
-            markersLayer = L.layerGroup().addTo(map);
-            routeLineLayer = L.layerGroup().addTo(map);
-            plotMapMarkers();
-        }
-
-        function getCoords(item) {
+        // 5. Coordinate Helper & Distance Calculation (Haversine)
+        function getItemCoords(item, index = 0) {
             for (let tag in cityCoords) {
-                if (item.address.toLowerCase().includes(tag.toLowerCase()) || (item.tags && item.tags.includes(tag))) {
-                    return cityCoords[tag];
+                if ((item.address && item.address.toLowerCase().includes(tag.toLowerCase())) ||
+                    (item.tags && item.tags.some(t => t.toLowerCase() === tag.toLowerCase()))) {
+                    // Slight deterministic offset so multiple members in Jaipur don't have identical coordinates
+                    const offsetLat = ((index % 5) - 2) * 0.008;
+                    const offsetLng = (((index * 2) % 5) - 2) * 0.008;
+                    return [cityCoords[tag][0] + offsetLat, cityCoords[tag][1] + offsetLng];
                 }
             }
-            return [26.9124, 75.7873];
+            return [26.9124 + (index * 0.02), 75.7873 + (index * 0.02)];
+        }
+
+        function getDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return Math.round(R * c);
+        }
+
+        // 6. Map + Marker Clustering + Custom Avatar/Letter Markers
+        function initMap() {
+            if (map) map.remove();
+            map = L.map('digital-map', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([26.55, 75.8], 7);
+
+            const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            updateMapTiles(currentTheme);
+
+            clusterGroup = L.markerClusterGroup({
+                showCoverageOnHover: false,
+                maxClusterRadius: 42,
+                spiderfyOnMaxZoom: true
+            });
+            map.addLayer(clusterGroup);
         }
 
         function plotMapMarkers(filterTag = 'All') {
-            if (!markersLayer) return;
-            markersLayer.clearLayers();
+            if (!clusterGroup) return;
+            activeMapFilter = filterTag;
+            clusterGroup.clearLayers();
 
             let filtered = familyData;
             if (filterTag !== 'All') {
@@ -607,37 +842,77 @@
             }
 
             const bounds = [];
+
             filtered.forEach((item, index) => {
-                const coords = getCoords(item);
+                const coords = getItemCoords(item, index);
                 bounds.push(coords);
 
-                let avatarContent = item.photo ? `<img src="${item.photo}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : item.name.charAt(0);
+                const initial = escapeHTML(item.name.charAt(0).toUpperCase());
+                const hasPhoto = item.photo && item.photo.trim().length > 5;
+
+                const markerInner = hasPhoto
+                    ? `<img src="${escapeHTML(item.photo)}" alt="${initial}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.innerText='${initial}'">`
+                    : initial;
 
                 const iconHtml = `
-                    <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 2.5px solid white; box-shadow: 0 4px 14px rgba(59,130,246,0.45); font-weight: bold; font-size: 14px; overflow:hidden;">
-                        ${avatarContent}
+                    <div style="
+                        background: linear-gradient(135deg, #2563eb, #4f46e5);
+                        width: 38px; height: 38px;
+                        border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center;
+                        color: white; border: 2.5px solid white;
+                        box-shadow: 0 4px 14px rgba(37,99,235,0.5);
+                        font-size: 14px; font-weight: 800; overflow: hidden;
+                    ">
+                        ${markerInner}
                     </div>
                 `;
 
-                const customIcon = L.divIcon({ html: iconHtml, className: 'custom-div-icon', iconSize: [36, 36], iconAnchor: [18, 18] });
-                const marker = L.marker(coords, { icon: customIcon }).addTo(markersLayer);
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: 'custom-div-icon',
+                    iconSize: [38, 38],
+                    iconAnchor: [19, 19]
+                });
+
+                const marker = L.marker(coords, { icon: customIcon });
+                const distText = userCoords
+                    ? `<span style="display:inline-block;background:#ecfdf5;color:#059669;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700;margin-bottom:6px;">${getDistanceKm(userCoords.lat, userCoords.lng, coords[0], coords[1])} km away</span>`
+                    : '';
 
                 marker.bindPopup(`
-                    <div style="min-width: 190px; color: #0f172a;">
-                        ${item.photo ? `<img src="${item.photo}" style="width:100%; height:90px; object-fit:cover; border-radius:8px; margin-bottom:6px;">` : ''}
-                        <h4 style="font-weight: 700; font-size: 14px; margin: 0 0 2px 0;">${item.name}</h4>
-                        <p style="font-size: 12px; color: #64748b; margin: 0 0 10px 0;">${item.address}</p>
-                        <a href="${item.link}" target="_blank" style="background: #2563eb; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; text-decoration: none; font-weight: 600; display: inline-block;">Open Maps →</a>
+                    <div style="min-width: 195px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                            ${hasPhoto ? `<img src="${escapeHTML(item.photo)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;">` : ''}
+                            <div>
+                                <h4 style="font-weight: 700; font-size: 13px; margin: 0; color: #0f172a;">${escapeHTML(item.name)}</h4>
+                                <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">${escapeHTML(item.address)}</p>
+                            </div>
+                        </div>
+                        ${distText}
+                        <div style="display:flex;gap:6px;margin-top:6px;">
+                            <a href="${escapeHTML(item.link)}" target="_blank" onclick="recordVisit('${escapeHTML(item.name)}')"
+                               style="flex:1;text-align:center;background: #2563eb; color: white; padding: 6px 10px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 600;">
+                               Open Maps
+                            </a>
+                            <a href="https://wa.me/?text=${encodeURIComponent(item.name + ' (' + item.address + '): ' + item.link)}" target="_blank"
+                               style="background: #10b981; color: white; padding: 6px 10px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 600;">
+                               Share
+                            </a>
+                        </div>
                     </div>
                 `);
+
+                clusterGroup.addLayer(marker);
             });
 
-            if (bounds.length > 0 && map) {
-                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+            if (bounds.length > 0 && filterTag !== 'All') {
+                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
             }
+            renderMapFilterPills();
         }
 
-        // RENDER FUNCTIONS
+        // 7. Render All Components
         function renderAll() {
             renderStats();
             renderFeaturedLocations();
@@ -649,89 +924,162 @@
         function renderStats() {
             document.getElementById('stat-members').innerText = familyData.length;
             const citiesSet = new Set();
-            familyData.forEach(m => { if (m.tags) m.tags.forEach(t => citiesSet.add(t)); });
+            familyData.forEach(m => {
+                if (m.tags) m.tags.forEach(t => citiesSet.add(t));
+            });
             document.getElementById('stat-cities').innerText = Math.max(1, citiesSet.size - 1);
             document.getElementById('stat-locations').innerText = familyData.length;
         }
 
         function renderFeaturedLocations() {
             const container = document.getElementById('featured-locations-container');
-            const featured = familyData.filter(m => m.name.includes("Devta") || m.name.includes("Central House") || (m.tags && m.tags.includes("Home")));
-            container.innerHTML = featured.slice(0, 2).map(item => `
-                <div class="p-4 rounded-2xl bg-white/5 dark:bg-white/5 light:bg-slate-100 border border-white/5 dark:border-white/5 light:border-slate-200 flex items-center justify-between hover:border-blue-500/30 transition">
-                    <div>
-                        <span class="text-[10px] font-bold text-amber-400 px-2 py-0.5 rounded bg-amber-500/10">Special Spot</span>
-                        <h4 class="font-bold text-sm mt-1.5">${item.name}</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">${item.address}</p>
+            const featured = familyData.filter(m =>
+                m.name.includes("Devta") || m.name.includes("Central House") || (m.tags && m.tags.includes("Home"))
+            );
+
+            container.innerHTML = featured.slice(0, 2).map(item => {
+                const hasPhoto = item.photo && item.photo.trim().length > 5;
+                const waText = encodeURIComponent(`${item.name} — ${item.address}: ${item.link}`);
+                return `
+                <div class="p-4 rounded-2xl sub-surface card-hover flex flex-col justify-between gap-3">
+                    <div class="flex items-start gap-3.5">
+                        ${hasPhoto
+                            ? `<img src="${escapeHTML(item.photo)}" onclick="openLightbox('${escapeHTML(item.photo)}', '${escapeHTML(item.name)}', '${escapeHTML(item.address)}', '${escapeHTML(item.link)}')" class="w-14 h-14 rounded-2xl object-cover cursor-pointer border border-white/10 shrink-0 shadow">`
+                            : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-500 flex items-center justify-center font-extrabold text-xl shrink-0 border border-amber-500/20"><i class="fa-solid fa-gopuram"></i></div>`
+                        }
+                        <div class="min-w-0">
+                            <span class="text-[10px] font-bold text-amber-500 px-2 py-0.5 rounded bg-amber-500/10">Special Spot</span>
+                            <h4 class="font-bold text-sm mt-1 truncate">${escapeHTML(item.name)}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">${escapeHTML(item.address)}</p>
+                        </div>
                     </div>
-                    <a href="${item.link}" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition shrink-0">Open →</a>
+                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-white/5">
+                        <a href="${escapeHTML(item.link)}" target="_blank" onclick="recordVisit('${escapeHTML(item.name)}')" class="flex-1 text-center py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition">
+                            Open Maps →
+                        </a>
+                        <a href="https://wa.me/?text=${waText}" target="_blank" class="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-brands fa-whatsapp"></i> Share
+                        </a>
+                    </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function renderDirectory() {
-            const search = document.getElementById('search-input').value.toLowerCase();
+            if (isLoading) return;
+            const searchInput = document.getElementById('search-input');
+            const search = searchInput.value.toLowerCase().trim();
             const selectedCity = document.getElementById('city-filter').value;
             const grid = document.getElementById('directory-grid');
 
-            let filtered = familyData.filter(m => {
-                const matchSearch = m.name.toLowerCase().includes(search) || m.address.toLowerCase().includes(search);
+            document.getElementById('clear-search-btn').classList.toggle('hidden', !search && selectedCity === 'All');
+
+            let listWithMeta = familyData.map((item, originalIndex) => {
+                const coords = getItemCoords(item, originalIndex);
+                const distance = userCoords ? getDistanceKm(userCoords.lat, userCoords.lng, coords[0], coords[1]) : null;
+                return { ...item, originalIndex, distance };
+            });
+
+            if (userCoords) {
+                listWithMeta.sort((a, b) => a.distance - b.distance);
+            }
+
+            let filtered = listWithMeta.filter(m => {
+                const matchSearch = m.name.toLowerCase().includes(search) ||
+                    m.address.toLowerCase().includes(search) ||
+                    (m.tags && m.tags.some(t => t.toLowerCase().includes(search)));
                 const matchCity = selectedCity === 'All' || (m.tags && m.tags.includes(selectedCity));
                 return matchSearch && matchCity;
             });
 
+            document.getElementById('filtered-count-badge').innerText = filtered.length;
+
+            // Empty State with Illustration & Clear Filters
             if (filtered.length === 0) {
                 grid.innerHTML = `
-                    <div class="col-span-full py-12 text-center glass rounded-3xl space-y-3">
-                        <div class="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto text-lg"><i class="fa-solid fa-filter-circle-xmark"></i></div>
-                        <h4 class="font-bold text-base">No family members found</h4>
-                        <p class="text-xs text-slate-400">Try adjusting your search query or city filter.</p>
-                        <button onclick="clearFilters()" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow">Clear Filters</button>
+                    <div class="col-span-full py-12 px-4 text-center flex flex-col items-center justify-center">
+                        <div class="w-20 h-20 rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-3xl mb-4">
+                            <i class="fa-solid fa-magnifying-glass-location"></i>
+                        </div>
+                        <h4 class="font-bold text-base">No matching family members found</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">Try adjusting your search keyword or switching the city filter.</p>
+                        <button onclick="clearFilters()" class="mt-4 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg transition">
+                            Clear filters
+                        </button>
                     </div>
                 `;
                 return;
             }
 
-            grid.innerHTML = filtered.map((item, idx) => {
-                const actualIdx = familyData.indexOf(item);
-                const avatarMarkup = item.photo 
-                    ? `<img src="${item.photo}" class="w-12 h-12 rounded-2xl object-cover shadow-md">`
-                    : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-md">${item.name.charAt(0)}</div>`;
-
-                const distanceBadge = item.distanceKm !== undefined 
-                    ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 font-semibold text-[11px]"><i class="fa-solid fa-location-arrow mr-1"></i>${item.distanceKm} km away</span>`
-                    : `<span class="px-2.5 py-1 rounded-lg bg-white/5 dark:bg-white/5 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-medium">${item.tags ? item.tags[0] : 'Rajasthan'}</span>`;
+            grid.innerHTML = filtered.map(item => {
+                const hasPhoto = item.photo && item.photo.trim().length > 5;
+                const initial = escapeHTML(item.name.charAt(0).toUpperCase());
+                const waText = encodeURIComponent(`${item.name} (${item.address}) location: ${item.link}`);
 
                 return `
-                    <div class="glass rounded-2xl p-5 flex flex-col justify-between hover:border-blue-500/40 transition group hover:-translate-y-1 duration-300">
-                        <div>
-                            <div class="flex items-start justify-between">
-                                ${avatarMarkup}
-                                <div class="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition">
-                                    ${isAdmin ? `
-                                        <button onclick="editMember(${actualIdx})" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center text-xs transition"><i class="fa-solid fa-pen"></i></button>
-                                        <button onclick="deleteMember(${actualIdx})" class="w-8 h-8 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-400 flex items-center justify-center text-xs transition"><i class="fa-solid fa-trash"></i></button>
-                                    ` : ''}
-                                    <a href="${item.link}" target="_blank" class="w-8 h-8 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 flex items-center justify-center text-xs transition">
-                                        <i class="fa-solid fa-location-arrow"></i>
-                                    </a>
-                                </div>
+                <div class="glass rounded-2xl p-5 flex flex-col justify-between card-hover group">
+                    <div>
+                        <div class="flex items-start justify-between gap-2">
+                            ${hasPhoto
+                                ? `<img src="${escapeHTML(item.photo)}" alt="${initial}" onclick="openLightbox('${escapeHTML(item.photo)}', '${escapeHTML(item.name)}', '${escapeHTML(item.address)}', '${escapeHTML(item.link)}')"
+                                    class="w-13 h-13 w-12 h-12 rounded-2xl object-cover cursor-pointer border-2 border-blue-500/40 shadow-md hover:scale-105 transition">`
+                                : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-md">
+                                    ${initial}
+                                   </div>`
+                            }
+                            <div class="flex items-center gap-1.5">
+                                ${isAdmin ? `
+                                    <button onclick="editMember(${item.originalIndex})" title="Edit" class="w-8 h-8 rounded-lg sub-surface hover:border-blue-500/50 text-blue-500 flex items-center justify-center text-xs transition">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button onclick="deleteMember(${item.originalIndex})" title="Delete" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center text-xs transition">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                                <a href="${escapeHTML(item.link)}" target="_blank" onclick="recordVisit('${escapeHTML(item.name)}')" title="Open Google Maps" class="w-8 h-8 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 text-blue-500 flex items-center justify-center text-xs transition">
+                                    <i class="fa-solid fa-location-arrow"></i>
+                                </a>
                             </div>
-                            <h4 class="font-bold text-base mt-3.5">${item.name}</h4>
-                            <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-                                <i class="fa-solid fa-location-dot text-red-400 text-[10px]"></i> ${item.address}
+                        </div>
+
+                        <div class="mt-3.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <h4 class="font-bold text-base truncate">${escapeHTML(item.name)}</h4>
+                                ${item.distance !== null ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 shrink-0">${item.distance} km</span>` : ''}
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot text-red-500 text-[10px]"></i> ${escapeHTML(item.address)}
                             </p>
                         </div>
-                        <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-white/5 dark:border-white/5 light:border-slate-200 text-xs">
-                            ${distanceBadge}
-                            <a href="https://wa.me/?text=${encodeURIComponent('📍 *' + item.name + '*\nAddress: ' + item.address + '\nMap: ' + item.link)}" target="_blank" 
-                               class="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1.5 transition">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> Share
-                            </a>
-                        </div>
+
+                        ${item.lastVisited ? `
+                            <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                                <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Last opened: ${escapeHTML(item.lastVisited)}
+                            </p>
+                        ` : ''}
+
+                        ${(isAdmin && item.privateNote) ? `
+                            <div class="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-600 dark:text-amber-300">
+                                <i class="fa-solid fa-lock mr-1"></i> ${escapeHTML(item.privateNote)}
+                            </div>
+                        ` : ''}
                     </div>
-                `;
-            }).join('');
+
+                    <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-slate-200 dark:border-white/5 text-xs">
+                        <span class="px-2.5 py-1 rounded-lg sub-surface font-medium">${item.tags ? escapeHTML(item.tags[0]) : 'Rajasthan'}</span>
+                        <a href="https://wa.me/?text=${waText}" target="_blank"
+                           class="text-emerald-500 hover:text-emerald-400 font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-brands fa-whatsapp"></i> Share
+                        </a>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('city-filter').value = 'All';
+            renderDirectory();
         }
 
         function renderCityFilters() {
@@ -741,88 +1089,117 @@
             familyData.forEach(m => { if (m.tags) m.tags.forEach(t => citiesSet.add(t)); });
             
             let html = '<option value="All">All Cities</option>';
-            citiesSet.forEach(c => { 
-                html += `<option value="${c}" ${currentVal === c ? 'selected' : ''}>${c}</option>`; 
-            });
+            citiesSet.forEach(c => { html += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`; });
             select.innerHTML = html;
+            if ([...citiesSet, 'All'].includes(currentVal)) select.value = currentVal;
         }
 
-        function renderMapFilterPills(activeTag = 'All') {
+        function renderMapFilterPills() {
             const container = document.getElementById('map-filter-pills');
             const citiesSet = new Set();
             familyData.forEach(m => { if (m.tags) m.tags.forEach(t => citiesSet.add(t)); });
 
-            let html = `<button onclick="filterMap('All')" class="px-3.5 py-1.5 rounded-xl ${activeTag === 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-white/5 hover:bg-white/10 dark:bg-white/5 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 border border-white/10'} text-xs font-semibold transition">All (${familyData.length})</button>`;
-            
+            const getPillClass = (tag) => activeMapFilter === tag
+                ? 'px-3.5 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition shrink-0'
+                : 'px-3.5 py-1.5 rounded-xl sub-surface hover:border-blue-500/40 text-xs font-semibold transition shrink-0';
+
+            let html = `<button onclick="plotMapMarkers('All')" class="${getPillClass('All')}">All (${familyData.length})</button>`;
             citiesSet.forEach(c => {
-                const isActive = activeTag === c;
-                html += `<button onclick="filterMap('${c}')" class="px-3.5 py-1.5 rounded-xl ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-white/5 hover:bg-white/10 dark:bg-white/5 light:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 border border-white/10'} text-xs font-semibold transition">${c}</button>`;
+                html += `<button onclick="plotMapMarkers('${escapeHTML(c)}')" class="${getPillClass(c)}">${escapeHTML(c)}</button>`;
             });
             container.innerHTML = html;
         }
 
-        function filterMap(tag) {
-            renderMapFilterPills(tag);
-            plotMapMarkers(tag);
-        }
-
-        function clearFilters() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('city-filter').value = 'All';
-            renderDirectory();
-            filterMap('All');
-        }
-
-        function scrollToDirectory() {
-            document.getElementById('directory-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // NEAR ME (GPS & Haversine Distance)
-        function haversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radius of earth in km
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return (R * c).toFixed(1);
-        }
-
+        // 8. Near Me (Actual Distance + Sort by Distance)
         function findNearMe() {
             if (!navigator.geolocation) {
                 showToast("Geolocation is not supported by your browser", "error");
                 return;
             }
-            showToast("Detecting your GPS location...", "info");
+            showToast("Fetching your GPS location...", "info");
             navigator.geolocation.getCurrentPosition(pos => {
-                const userLat = pos.coords.latitude;
-                const userLng = pos.coords.longitude;
-
-                familyData.forEach(item => {
-                    const coords = getCoords(item);
-                    item.distanceKm = parseFloat(haversineDistance(userLat, userLng, coords[0], coords[1]));
-                });
-
-                familyData.sort((a, b) => a.distanceKm - b.distanceKm);
+                userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                document.getElementById('near-me-active-pill').classList.remove('hidden');
                 renderDirectory();
-                showToast("Directory sorted by nearest locations!", "success");
-                scrollToDirectory();
+                plotMapMarkers(activeMapFilter);
+                showToast("Sorted directory by closest distance!", "success");
+                scrollToSection('directory-section');
             }, () => {
-                showToast("Location permission denied or unavailable", "error");
+                showToast("Location permission denied. Enable GPS to sort by distance.", "error");
             });
         }
 
-        // ADMIN CONTROLS
+        function clearNearMeSort() {
+            userCoords = null;
+            document.getElementById('near-me-active-pill').classList.add('hidden');
+            renderDirectory();
+            plotMapMarkers(activeMapFilter);
+            showToast("Distance sorting cleared", "info");
+        }
+
+        // 9. Location History ("Last visited")
+        function recordVisit(name) {
+            const idx = familyData.findIndex(m => m.name === name);
+            if (idx !== -1) {
+                const now = new Date();
+                familyData[idx].lastVisited = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ', ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                syncToCloud(true);
+                renderDirectory();
+            }
+        }
+
+        // 10. Image Lightbox
+        function openLightbox(photoUrl, name, address, link) {
+            document.getElementById('lightbox-img').src = photoUrl;
+            document.getElementById('lightbox-title').innerText = name;
+            document.getElementById('lightbox-subtitle').innerText = address;
+            document.getElementById('lightbox-map-link').href = link;
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+        }
+
+        // 11. Photo Upload Helper (Compresses image so Firestore stays fast & lightweight)
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 320;
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+                    else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.78);
+                    document.getElementById('form-photo').value = compressedDataUrl;
+                    showToast("Photo attached & optimized!", "success");
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 12. Admin Mode (Passcode 2002) + Add / Edit / Delete
         function openAdminModal() {
             if (isAdmin) {
                 isAdmin = false;
                 document.getElementById('admin-btn-text').innerText = "Admin";
+                document.getElementById('mobile-admin-label').innerText = "Admin";
                 document.getElementById('admin-quick-actions').classList.add('hidden');
                 document.getElementById('edit-notice-btn').classList.add('hidden');
                 renderDirectory();
-                showToast("Admin mode logged out", "info");
+                showToast("Admin Mode locked", "info");
                 return;
             }
             document.getElementById('admin-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('admin-pin-input').focus(), 100);
         }
 
         function closeAdminModal() {
@@ -833,40 +1210,22 @@
             const pin = document.getElementById('admin-pin-input').value;
             if (pin === "2002") {
                 isAdmin = true;
-                document.getElementById('admin-btn-text').innerText = "Admin (Active)";
+                document.getElementById('admin-btn-text').innerText = "Admin ✓";
+                document.getElementById('mobile-admin-label').innerText = "Admin ✓";
                 document.getElementById('admin-quick-actions').classList.remove('hidden');
                 document.getElementById('edit-notice-btn').classList.remove('hidden');
                 closeAdminModal();
                 document.getElementById('admin-pin-input').value = "";
                 renderDirectory();
-                showToast("Admin Mode Active Successfully!", "success");
+                showToast("Admin Mode Unlocked!", "success");
             } else {
-                showToast("Incorrect PIN! Try 2002", "error");
+                showToast("Incorrect PIN! Please enter 2002", "error");
             }
         }
 
-        // NOTICE MODAL
-        function openNoticeModal() {
-            document.getElementById('notice-input').value = document.getElementById('notice-display-text').innerText;
-            document.getElementById('notice-modal').classList.remove('hidden');
-        }
-        function closeNoticeModal() {
-            document.getElementById('notice-modal').classList.add('hidden');
-        }
-        function saveNewNotice() {
-            const newText = document.getElementById('notice-input').value.trim();
-            if (newText) {
-                document.getElementById('notice-display-text').innerText = newText;
-                syncToCloud();
-                closeNoticeModal();
-                showToast("Live notice updated & synced!", "success");
-            }
-        }
-
-        // MEMBER ADD / EDIT / DELETE
         function openAddMemberModal() {
             document.getElementById('edit-index').value = "-1";
-            document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-user-plus text-emerald-400"></i> Add New Member / House`;
+            document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-user-plus text-emerald-500"></i> Add New Member / House`;
             document.getElementById('member-form').reset();
             document.getElementById('member-modal').classList.remove('hidden');
         }
@@ -883,55 +1242,83 @@
             document.getElementById('form-link').value = item.link;
             document.getElementById('form-tag').value = item.tags ? item.tags[0] : '';
             document.getElementById('form-photo').value = item.photo || '';
-            document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-pen text-blue-400"></i> Edit Member / House`;
+            document.getElementById('form-private-note').value = item.privateNote || '';
+            document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-pen text-blue-500"></i> Edit Member / House`;
             document.getElementById('member-modal').classList.remove('hidden');
+        }
+
+        function deleteMember(index) {
+            const target = familyData[index];
+            if (!target) return;
+            if (confirm(`Remove "${target.name}" from the family directory?`)) {
+                familyData.splice(index, 1);
+                syncToCloud();
+                renderAll();
+                plotMapMarkers(activeMapFilter);
+                showToast(`Removed ${target.name}`, "info");
+            }
         }
 
         function saveMemberForm(e) {
             e.preventDefault();
             const idx = parseInt(document.getElementById('edit-index').value);
+            const existing = idx !== -1 ? familyData[idx] : {};
+
             const newItem = {
-                name: document.getElementById('form-name').value,
-                address: document.getElementById('form-address').value,
-                link: document.getElementById('form-link').value,
-                photo: document.getElementById('form-photo').value,
-                tags: [document.getElementById('form-tag').value]
+                name: document.getElementById('form-name').value.trim(),
+                address: document.getElementById('form-address').value.trim(),
+                link: document.getElementById('form-link').value.trim(),
+                photo: document.getElementById('form-photo').value.trim(),
+                tags: [document.getElementById('form-tag').value.trim()],
+                privateNote: document.getElementById('form-private-note').value.trim(),
+                lastVisited: existing.lastVisited || ""
             };
 
             if (idx === -1) {
                 familyData.push(newItem);
-                showToast("New member added & synced!", "success");
             } else {
                 familyData[idx] = newItem;
-                showToast("Member updated & synced!", "success");
             }
 
             syncToCloud();
             closeMemberModal();
             renderAll();
-            plotMapMarkers();
+            plotMapMarkers(activeMapFilter);
         }
 
-        function deleteMember(index) {
-            const memberName = familyData[index].name;
-            if (confirm(`Are you sure you want to delete ${memberName} from directory?`)) {
-                familyData.splice(index, 1);
+        function editNoticePrompt() {
+            const current = document.getElementById('notice-display-text').innerText;
+            const newNotice = prompt("Enter new live notice for all family members:", current);
+            if (newNotice && newNotice.trim()) {
+                document.getElementById('notice-display-text').innerText = newNotice.trim();
                 syncToCloud();
-                renderAll();
-                plotMapMarkers();
-                showToast(`${memberName} removed successfully`, "info");
             }
         }
 
-        // TRIP PLANNER MODAL
-        function openTripPlannerModal() {
-            const selectFrom = document.getElementById('trip-from');
-            const selectTo = document.getElementById('trip-to');
-            let optionsHTML = familyData.map((m, i) => `<option value="${i}">${m.name} (${m.address})</option>`).join('');
-            selectFrom.innerHTML = optionsHTML;
-            selectTo.innerHTML = optionsHTML;
-            if(familyData.length > 1) selectTo.selectedIndex = 1;
-            document.getElementById('trip-result').classList.add('hidden');
+        function syncToCloud(silent = false) {
+            if (db) {
+                db.collection("family_space").doc("data").set({
+                    members: familyData,
+                    notice: document.getElementById('notice-display-text').innerText
+                }).then(() => {
+                    updateLastSyncedTime();
+                    if (!silent) showToast("Synced to cloud across all devices", "cloud");
+                }).catch(err => {
+                    console.error("Sync error:", err);
+                    if (!silent) showToast("Cloud sync failed. Check internet.", "error");
+                });
+            }
+        }
+
+        // 13. Trip Planner Modal
+        function openRoutePlanner() {
+            const fromSel = document.getElementById('trip-from');
+            const toSel = document.getElementById('trip-to');
+            const optionsHtml = familyData.map((m, i) => `<option value="${i}">${escapeHTML(m.name)} (${escapeHTML(m.address)})</option>`).join('');
+            fromSel.innerHTML = optionsHtml;
+            toSel.innerHTML = optionsHtml;
+            if (familyData.length > 1) toSel.selectedIndex = 1;
+            calculateTripDistance();
             document.getElementById('trip-modal').classList.remove('hidden');
         }
 
@@ -939,46 +1326,169 @@
             document.getElementById('trip-modal').classList.add('hidden');
         }
 
-        function calculateTripRoute() {
-            const idx1 = parseInt(document.getElementById('trip-from').value);
-            const idx2 = parseInt(document.getElementById('trip-to').value);
-            if (idx1 === idx2) {
-                showToast("Start and destination cannot be the same", "error");
-                return;
-            }
+        function calculateTripDistance() {
+            const i1 = parseInt(document.getElementById('trip-from').value);
+            const i2 = parseInt(document.getElementById('trip-to').value);
+            const c1 = getItemCoords(familyData[i1], i1);
+            const c2 = getItemCoords(familyData[i2], i2);
 
-            const m1 = familyData[idx1];
-            const m2 = familyData[idx2];
-            const c1 = getCoords(m1);
-            const c2 = getCoords(m2);
+            const airKm = getDistanceKm(c1[0], c1[1], c2[0], c2[1]);
+            const roadKm = Math.round(airKm * 1.18);
+            const estHours = (roadKm / 55).toFixed(1);
 
-            const dist = haversineDistance(c1[0], c1[1], c2[0], c2[1]);
-            const estHours = (dist / 50).toFixed(1); // approx driving speed 50 km/h
-
-            const resDiv = document.getElementById('trip-result');
-            resDiv.innerHTML = `
-                <p><strong>Route:</strong> ${m1.name} → ${m2.name}</p>
-                <p><strong>Approx Distance:</strong> ${dist} km</p>
-                <p><strong>Est. Drive Time:</strong> ~${estHours} hours</p>
-                <a href="https://www.google.com/maps/dir/?api=1&origin=${c1[0]},${c1[1]}&destination=${c2[0]},${c2[1]}" target="_blank" class="text-blue-400 underline font-semibold block mt-1">Open Directions in Google Maps →</a>
-            `;
-            resDiv.classList.remove('hidden');
-
-            if (routeLineLayer) routeLineLayer.clearLayers();
-            L.polyline([c1, c2], { color: '#3b82f6', weight: 4, dashArray: '6, 6' }).addTo(routeLineLayer);
-            map.fitBounds([c1, c2], { padding: [60, 60] });
-            showToast("Route plotted on digital map!", "success");
+            document.getElementById('trip-distance-val').innerText = `${roadKm} km`;
+            document.getElementById('trip-time-val').innerText = `Approx. ${estHours} hrs drive (${familyData[i1].tags[0]} → ${familyData[i2].tags[0]})`;
+            document.getElementById('trip-gmaps-btn').href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(familyData[i1].address)}&destination=${encodeURIComponent(familyData[i2].address)}`;
         }
 
-        function syncToCloud() {
-            if (db) {
-                db.collection("family_space").doc("data").set({
-                    members: familyData,
-                    notice: document.getElementById('notice-display-text').innerText
-                }).then(() => {
-                    lastSyncTime = new Date();
-                });
+        // 14. Export Directory (Excel & PDF)
+        function toggleExportMenu() {
+            document.getElementById('export-dropdown').classList.toggle('hidden');
+        }
+
+        function exportToExcel() {
+            toggleExportMenu();
+            const rows = familyData.map((m, idx) => ({
+                "S.No": idx + 1,
+                "Name / Title": m.name,
+                "Address": m.address,
+                "City / Tag": m.tags ? m.tags.join(", ") : "",
+                "Google Maps Link": m.link
+            }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Family Directory");
+            XLSX.writeFile(wb, "Meena_Family_Directory_2026.xlsx");
+            showToast("Excel directory downloaded!", "success");
+        }
+
+        function exportToPDF() {
+            toggleExportMenu();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text("FAMILY SPACE — Meena Family Directory (2026)", 14, 18);
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Total Locations: ${familyData.length} | Generated on ${new Date().toLocaleDateString()}`, 14, 25);
+
+            const tableRows = familyData.map((m, i) => [
+                i + 1,
+                m.name,
+                m.address,
+                m.tags ? m.tags.join(", ") : "",
+                m.link
+            ]);
+
+            doc.autoTable({
+                startY: 30,
+                head: [["#", "Name", "Address", "City", "Google Maps Link"]],
+                body: tableRows,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [37, 99, 235] }
+            });
+
+            doc.save("Meena_Family_Directory_2026.pdf");
+            showToast("PDF directory downloaded!", "success");
+        }
+
+        // 15. Pull-to-Refresh on Mobile
+        function setupPullToRefresh() {
+            let startY = 0;
+            let pulling = false;
+            const indicator = document.getElementById('ptr-indicator');
+            const ptrText = document.getElementById('ptr-text');
+            const ptrIcon = document.getElementById('ptr-icon');
+
+            window.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                    pulling = true;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!pulling) return;
+                const diff = e.touches[0].clientY - startY;
+                if (diff > 20 && window.scrollY === 0) {
+                    const translate = Math.min(diff * 0.45, 70);
+                    indicator.style.transform = `translateY(${translate - 40}px)`;
+                    if (diff > 95) {
+                        ptrText.innerText = "Release to sync cloud";
+                        ptrIcon.style.transform = "rotate(180deg)";
+                    } else {
+                        ptrText.innerText = "Pull to refresh";
+                        ptrIcon.style.transform = "rotate(0deg)";
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!pulling) return;
+                pulling = false;
+                const diff = e.changedTouches[0].clientY - startY;
+                indicator.style.transform = 'translateY(-100%)';
+                if (diff > 95 && window.scrollY === 0) {
+                    renderAll();
+                    plotMapMarkers(activeMapFilter);
+                    updateLastSyncedTime();
+                    showToast("Directory & Map refreshed!", "cloud");
+                }
+            });
+        }
+
+        // 16. PWA Setup (Dynamic Web Manifest)
+        function setupPWA() {
+            const manifest = {
+                name: "FAMILY SPACE — Meena Family Directory",
+                short_name: "FAMILY SPACE",
+                start_url: location.href,
+                display: "standalone",
+                background_color: "#060910",
+                theme_color: "#2563eb",
+                icons: [{
+                    src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='44' fill='%232563eb'/><text x='96' y='125' font-family='sans-serif' font-size='88' font-weight='bold' fill='white' text-anchor='middle'>FS</text></svg>",
+                    sizes: "192x192",
+                    type: "image/svg+xml"
+                }]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                document.getElementById('pwa-install-btn').classList.remove('hidden');
+                document.getElementById('pwa-install-btn').classList.add('flex');
+            });
+        }
+
+        async function installPWA() {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+                document.getElementById('pwa-install-btn').classList.add('hidden');
+                showToast("App installed to Home Screen!", "success");
             }
+            deferredInstallPrompt = null;
+        }
+
+        // Navigation & Security Helpers
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
     </script>
 </body>
