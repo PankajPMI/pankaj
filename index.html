@@ -474,7 +474,7 @@
         </div>
     </div>
 
-    <!-- ==================== ADMIN / LOGIN MODAL (Firebase Auth) ==================== -->
+    <!-- ==================== ADMIN / LOGIN MODAL ==================== -->
     <div id="admin-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
             <div class="flex items-center justify-between mb-5">
@@ -736,14 +736,24 @@
         // ==================== FIREBASE + AUTH ====================
         function initFirebase() {
             try {
+                // REPLACE THIS OBJECT WITH YOUR ACTUAL FIREBASE CONFIG FROM FIREBASE CONSOLE
                 const firebaseConfig = {
-                    apiKey: "AIzaSyBjExGHJ5R6Hs7uJ9KgF13D_1elk15Nd0",
+                    apiKey: "YOUR_ACTUAL_FIREBASE_API_KEY",
                     authDomain: "family-space-portal.firebaseapp.com",
                     projectId: "family-space-portal",
                     storageBucket: "family-space-portal.appspot.com",
                     messagingSenderId: "739307717779",
                     appId: "1:739307717779:web:c873eaa7e19f7839a53966"
                 };
+
+                // Guard against unconfigured placeholder keys
+                if (firebaseConfig.apiKey.includes("YOUR_ACTUAL") || firebaseConfig.apiKey.length < 20) {
+                    console.warn("Firebase API key is not configured. Running in Local Mode.");
+                    isLoading = false;
+                    updateCloudStatus(false);
+                    renderAll();
+                    return;
+                }
 
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
@@ -788,7 +798,7 @@
                     renderAll();
                 });
             } catch (e) {
-                console.error("Firebase error:", e);
+                console.error("Firebase initialization error:", e);
                 isLoading = false;
                 updateCloudStatus(false);
                 renderAll();
@@ -825,6 +835,10 @@
         }
 
         function loginAdmin() {
+            if (!auth) {
+                showToast("Firebase Auth is not initialized. Check API Key.", "error");
+                return;
+            }
             const email = document.getElementById('admin-email').value.trim();
             const password = document.getElementById('admin-password').value;
 
@@ -850,6 +864,7 @@
                     if (error.code === 'auth/user-not-found') msg = "No admin account found with this email.";
                     if (error.code === 'auth/wrong-password') msg = "Incorrect password.";
                     if (error.code === 'auth/invalid-email') msg = "Invalid email format.";
+                    if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key') msg = "Invalid Firebase API Key configured in code.";
                     showToast(msg, "error");
                 })
                 .finally(() => {
@@ -859,6 +874,7 @@
         }
 
         function logoutAdmin() {
+            if (!auth) return;
             auth.signOut().then(() => {
                 showToast("Logged out successfully", "info");
                 closeAdminModal();
@@ -874,7 +890,7 @@
                 text.innerText = "Cloud Live Sync";
                 badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/25 flex items-center gap-1.5";
             } else {
-                text.innerText = "Offline / Local";
+                text.innerText = "Offline / Local Mode";
                 badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/25 flex items-center gap-1.5";
             }
         }
@@ -1375,7 +1391,10 @@
         }
 
         function syncToCloud(silent = false) {
-            if (!db) return;
+            if (!db) {
+                if (!silent) showToast("Running in local mode (Firestore not connected)", "info");
+                return;
+            }
             if (!isAdmin && !silent) {
                 showToast("Only admin can make changes", "error");
                 return;
