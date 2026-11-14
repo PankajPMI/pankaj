@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FAMILY SPACE — Meena Family Live Directory</title>
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,19 +12,10 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            950: '#0a0f1a'
-                        }
+                        brand: { 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 950: '#0a0f1a' }
                     },
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif']
-                    },
-                    boxShadow: {
-                        'glow': '0 0 40px -10px rgba(59, 130, 246, 0.35)',
-                        'card': '0 10px 40px -15px rgba(0,0,0,0.5)'
                     }
                 }
             }
@@ -34,39 +24,35 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass {
-            background: rgba(15, 23, 42, 0.65);
+            background: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255,255,255,0.07);
         }
-        .glass-light {
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(0,0,0,0.06);
-        }
-        #google-map {
+        #digital-map {
             height: 480px;
             width: 100%;
             border-radius: 1.25rem;
-            overflow: hidden;
+            z-index: 1;
         }
-        .marker-label {
-            background: #3b82f6;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            white-space: nowrap;
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px !important;
+            padding: 4px !important;
         }
-        /* Smooth scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+        .leaflet-popup-content {
+            margin: 10px 12px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
     </style>
 </head>
 <body class="bg-[#060910] text-slate-100 min-h-screen selection:bg-blue-500/40">
@@ -75,7 +61,7 @@
     <header class="sticky top-0 z-50 glass border-b border-white/5 px-4 lg:px-8 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-glow">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-blue-500/30">
                     FS
                 </div>
                 <div>
@@ -95,7 +81,7 @@
                     <i class="fa-solid fa-location-crosshairs text-blue-400"></i>
                     <span class="hidden sm:inline">Near Me</span>
                 </button>
-                <button onclick="openAdminModal()" id="admin-btn" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
+                <button onclick="openAdminModal()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i>
                     <span id="admin-btn-text">Admin</span>
                 </button>
@@ -128,7 +114,6 @@
 
         <!-- HERO + STATS -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Hero -->
             <div class="lg:col-span-8 glass rounded-3xl p-7 sm:p-9 relative overflow-hidden">
                 <div class="absolute -right-16 -bottom-16 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative">
@@ -154,7 +139,6 @@
                 </div>
             </div>
 
-            <!-- Stats -->
             <div class="lg:col-span-4 grid grid-cols-2 gap-4">
                 <div class="glass rounded-2xl p-5 flex flex-col justify-between">
                     <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center">
@@ -232,7 +216,7 @@
             </div>
         </div>
 
-        <!-- GOOGLE MAP -->
+        <!-- MAP SECTION -->
         <div class="glass rounded-3xl p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                 <div>
@@ -243,7 +227,7 @@
                 </div>
                 <div class="flex flex-wrap gap-2" id="map-filter-pills"></div>
             </div>
-            <div id="google-map"></div>
+            <div id="digital-map"></div>
         </div>
 
         <!-- DIRECTORY -->
@@ -360,16 +344,11 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <!-- Google Maps API (Replace YOUR_GOOGLE_MAPS_API_KEY) -->
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initGoogleMap">
-    </script>
-
     <script>
-        // ====================== DATA ======================
         let familyData = [
             { name: "Roop Narayan Meena Ji", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/ufqfvXZsrnxZVans9", tags: ["Jaipur"] },
             { name: "Brij Mohan Meena Ji", photo: "", address: "Dausa, Rajasthan", link: "https://maps.app.goo.gl/HonrgpAunj9xkSyw8", tags: ["Dausa", "Home"] },
@@ -385,24 +364,22 @@
 
         let isAdmin = false;
         let map = null;
-        let markers = [];
+        let markersLayer = null;
         let db = null;
-        let useCloud = false;
 
-        // Approximate coordinates
         const cityCoords = {
-            "Jaipur": { lat: 26.9124, lng: 75.7873 },
-            "Dausa": { lat: 26.8837, lng: 76.3352 },
-            "Jaisalmer": { lat: 26.9157, lng: 70.9083 },
-            "Gangapur": { lat: 26.4783, lng: 76.7196 },
-            "Kota": { lat: 25.2138, lng: 75.8648 },
-            "Devta Pujan Sthal": { lat: 26.5000, lng: 76.5000 },
-            "Central House": { lat: 26.4500, lng: 76.6000 }
+            "Jaipur": [26.9124, 75.7873],
+            "Dausa": [26.8837, 76.3352],
+            "Jaisalmer": [26.9157, 70.9083],
+            "Gangapur": [26.4783, 76.7196],
+            "Kota": [25.2138, 75.8648],
+            "Devta Pujan Sthal": [26.5000, 76.5000],
+            "Central House": [26.4500, 76.6000]
         };
 
-        // ====================== INIT ======================
         window.addEventListener('DOMContentLoaded', () => {
             initFirebase();
+            initMap();
             renderAll();
         });
 
@@ -413,7 +390,6 @@
                     const cfg = JSON.parse(savedConfig);
                     firebase.initializeApp(cfg);
                     db = firebase.firestore();
-                    useCloud = true;
                     updateCloudStatus(true);
 
                     db.collection("family_space").doc("data").onSnapshot((doc) => {
@@ -422,14 +398,14 @@
                             if (cloudData.members) familyData = cloudData.members;
                             if (cloudData.notice) document.getElementById('notice-display-text').innerText = cloudData.notice;
                             renderAll();
-                            if (map) plotMarkers();
+                            plotMapMarkers();
                         }
                     });
                 } else {
                     updateCloudStatus(false);
                 }
             } catch (e) {
-                console.log("Firebase init error:", e);
+                console.log("Firebase error:", e);
                 updateCloudStatus(false);
             }
         }
@@ -446,34 +422,27 @@
             }
         }
 
-        // ====================== GOOGLE MAP ======================
-        function initGoogleMap() {
-            const mapEl = document.getElementById('google-map');
-            if (!mapEl) return;
+        function initMap() {
+            if (map) {
+                map.remove();
+            }
+            map = L.map('digital-map', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([26.55, 75.8], 7);
 
-            map = new google.maps.Map(mapEl, {
-                center: { lat: 26.55, lng: 75.8 },
-                zoom: 7,
-                styles: [
-                    { elementType: "geometry", stylers: [{ color: "#0f172a" }] },
-                    { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-                    { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-                    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
-                    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0c1220" }] },
-                    { featureType: "poi", stylers: [{ visibility: "off" }] }
-                ],
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: true
-            });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_593t_1_5d64bfbb1e241f771c59fda8, {
+                maxZoom: 19,
+                attribution: '© CARTO'
+            }).addTo(map);
 
-            plotMarkers();
+            markersLayer = L.layerGroup().addTo(map);
+            plotMapMarkers();
         }
 
-        function plotMarkers(filterTag = 'All') {
-            // Clear old markers
-            markers.forEach(m => m.setMap(null));
-            markers = [];
+        function plotMapMarkers(filterTag = 'All') {
+            if (!markersLayer) return;
+            markersLayer.clearLayers();
 
             let filtered = familyData;
             if (filterTag !== 'All') {
@@ -481,52 +450,52 @@
             }
 
             filtered.forEach((item, index) => {
-                let pos = { lat: 26.9124 + (index * 0.04), lng: 75.7873 + (index * 0.04) };
+                let coords = [26.9124 + (index * 0.035), 75.7873 + (index * 0.035)];
 
                 for (let tag in cityCoords) {
                     if (item.address.toLowerCase().includes(tag.toLowerCase()) || 
                         (item.tags && item.tags.includes(tag))) {
-                        pos = cityCoords[tag];
+                        coords = cityCoords[tag];
                         break;
                     }
                 }
 
-                const marker = new google.maps.Marker({
-                    position: pos,
-                    map: map,
-                    title: item.name,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: "#3b82f6",
-                        fillOpacity: 1,
-                        strokeColor: "#ffffff",
-                        strokeWeight: 2
-                    }
+                const iconHtml = `
+                    <div style="
+                        background: linear-gradient(135deg, #3b82f6, #6366f1);
+                        width: 34px; height: 34px;
+                        border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center;
+                        color: white; border: 2.5px solid white;
+                        box-shadow: 0 4px 14px rgba(59,130,246,0.45);
+                        font-size: 13px;
+                    ">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                `;
+
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: 'custom-div-icon',
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17]
                 });
 
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 6px 4px; max-width: 220px;">
-                            <h4 style="font-weight: 700; font-size: 14px; margin: 0 0 4px 0; color: #0f172a;">${item.name}</h4>
-                            <p style="font-size: 12px; color: #64748b; margin: 0 0 10px 0;">${item.address}</p>
-                            <a href="${item.link}" target="_blank" 
-                               style="background: #2563eb; color: white; padding: 6px 12px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 600; display: inline-block;">
-                               Open in Google Maps →
-                            </a>
-                        </div>
-                    `
-                });
+                const marker = L.marker(coords, { icon: customIcon }).addTo(markersLayer);
 
-                marker.addListener("click", () => {
-                    infoWindow.open(map, marker);
-                });
-
-                markers.push(marker);
+                marker.bindPopup(`
+                    <div style="min-width: 180px;">
+                        <h4 style="font-weight: 700; font-size: 14px; margin: 0 0 4px 0; color: #0f172a;">${item.name}</h4>
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 12px 0;">${item.address}</p>
+                        <a href="${item.link}" target="_blank" 
+                           style="background: #2563eb; color: white; padding: 7px 14px; border-radius: 8px; font-size: 12px; text-decoration: none; font-weight: 600; display: inline-block;">
+                           Open Google Maps →
+                        </a>
+                    </div>
+                `);
             });
         }
 
-        // ====================== RENDER ======================
         function renderAll() {
             renderStats();
             renderFeaturedLocations();
@@ -628,10 +597,10 @@
         }
 
         function filterMap(tag) {
-            plotMarkers(tag);
+            plotMapMarkers(tag);
         }
 
-        // ====================== ADMIN ======================
+        // Admin functions
         function openAdminModal() {
             if (isAdmin) {
                 isAdmin = false;
@@ -727,7 +696,7 @@
             syncToCloud();
             closeMemberModal();
             renderAll();
-            if (map) plotMarkers();
+            plotMapMarkers();
         }
 
         function editNoticePrompt() {
@@ -747,7 +716,6 @@
             }
         }
 
-        // ====================== UTILITIES ======================
         function findNearMe() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
