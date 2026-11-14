@@ -9,11 +9,9 @@
     <meta name="apple-mobile-web-app-title" content="FAMILY SPACE">
     <title>FAMILY SPACE v0.1 — Meena Family Live Directory</title>
 
-    <!-- Dynamic PWA Manifest Setup -->
     <link rel="manifest" id="pwa-manifest">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232563eb'/><text x='50' y='67' font-family='sans-serif' font-size='48' font-weight='bold' fill='white' text-anchor='middle'>FS</text></svg>">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -31,16 +29,13 @@
         }
     </script>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Leaflet & MarkerCluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
-    <!-- Export Libraries: SheetJS (Excel) & jsPDF + AutoTable (PDF) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -125,7 +120,6 @@
             border: none;
         }
 
-        /* Custom Cluster Styling */
         .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
             background-color: rgba(59, 130, 246, 0.28) !important;
         }
@@ -137,7 +131,6 @@
             border: 2px solid #ffffff;
         }
 
-        /* Shimmer Skeleton */
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
@@ -148,7 +141,6 @@
             animation: shimmer 1.5s infinite linear;
         }
 
-        /* Toast Animations */
         @keyframes toastIn {
             from { opacity: 0; transform: translateY(16px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -157,7 +149,6 @@
             animation: toastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
-        /* Hide scrollbars on horizontal pill strip */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -196,7 +187,6 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <!-- PWA Install Button (hidden unless installable) -->
                 <button id="pwa-install-btn" onclick="installPWA()" class="hidden px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition items-center gap-1.5">
                     <i class="fa-solid fa-download"></i>
                     <span class="hidden sm:inline">Install App</span>
@@ -379,7 +369,6 @@
 
         <!-- DIRECTORY -->
         <div id="directory-section" class="glass rounded-3xl p-6">
-            <!-- Sticky Search Bar Header -->
             <div class="sticky top-[68px] z-30 -mx-2 px-2 py-3 mb-5 rounded-2xl glass backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
                     <h3 class="font-bold text-lg sm:text-xl flex items-center gap-2">
@@ -403,12 +392,10 @@
                 </div>
             </div>
 
-            <!-- Directory Grid / Skeletons -->
             <div id="directory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </div>
     </main>
 
-    <!-- FOOTER WITH LAST SYNCED TIME -->
     <footer class="max-w-7xl mx-auto px-4 lg:px-8 py-8 text-center text-xs text-slate-500 border-t border-slate-200 dark:border-white/5 mt-6 space-y-1.5">
         <p class="font-medium">FAMILY SPACE v0.1 • Secured Live Family Portal • Meena Family © 2026</p>
         <p id="last-synced-footer" class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
@@ -416,7 +403,7 @@
         </p>
     </footer>
 
-    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <!-- MOBILE BOTTOM NAV -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t px-2 py-2 flex items-center justify-around">
         <button onclick="scrollToSection('directory-section')" id="nav-btn-directory" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-blue-500 font-semibold text-[11px]">
             <i class="fa-solid fa-address-book text-base"></i>
@@ -436,7 +423,7 @@
         </button>
     </nav>
 
-    <!-- IMAGE LIGHTBOX MODAL -->
+    <!-- IMAGE LIGHTBOX -->
     <div id="lightbox-modal" onclick="closeLightbox()" class="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div onclick="event.stopPropagation()" class="relative max-w-lg w-full rounded-3xl overflow-hidden glass border border-white/15 shadow-2xl">
             <button onclick="closeLightbox()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center z-10 transition">
@@ -487,28 +474,51 @@
         </div>
     </div>
 
-    <!-- ADMIN MODAL -->
+    <!-- ==================== ADMIN / LOGIN MODAL (Firebase Auth) ==================== -->
     <div id="admin-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-blue-500"></i> Admin Access
+                    <i class="fa-solid fa-shield-halved text-blue-500"></i> 
+                    <span id="admin-modal-title">Admin Login</span>
                 </h3>
                 <button onclick="closeAdminModal()" class="text-slate-400 hover:text-red-500 transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-300 mb-5 leading-relaxed">
-                Enter the 4-digit admin passcode (<span class="font-mono text-blue-500 font-bold">0000</span>) to unlock editing, deletions, private notes & member additions.
-            </p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Passcode PIN</label>
-                    <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter') verifyAdminPin()"
-                        class="w-full px-4 py-3.5 rounded-xl theme-input text-center tracking-[0.5em] text-lg font-mono focus:outline-none focus:border-blue-500 transition">
+
+            <!-- LOGIN FORM -->
+            <div id="login-form-section">
+                <p class="text-xs text-slate-500 dark:text-slate-300 mb-5 leading-relaxed">
+                    Only authorized family admin can edit members, add locations or update notice.
+                </p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Email</label>
+                        <input type="email" id="admin-email" placeholder="admin@example.com"
+                            class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Password</label>
+                        <input type="password" id="admin-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginAdmin()"
+                            class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                    <button onclick="loginAdmin()" id="login-btn" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/25 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Login as Admin
+                    </button>
                 </div>
-                <button onclick="verifyAdminPin()" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/25 transition">
-                    Unlock Admin
+            </div>
+
+            <!-- LOGGED IN STATE -->
+            <div id="logged-in-section" class="hidden">
+                <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-5">
+                    <p class="text-xs text-emerald-500 font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check"></i> Admin Mode Active
+                    </p>
+                    <p id="logged-in-email" class="text-xs text-slate-400 mt-1"></p>
+                </div>
+                <button onclick="logoutAdmin()" class="w-full py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-500 font-semibold text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
             </div>
         </div>
@@ -584,9 +594,10 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
-        // Default Family Data (Unchanged structure + optional photo, privateNote, lastVisited)
+        // ==================== DATA & STATE ====================
         let familyData = [
             { name: "Roop Narayan Meena Ji", photo: "", address: "Jaipur, Rajasthan", link: "https://maps.app.goo.gl/ufqfvXZsrnxZVans9", tags: ["Jaipur"], privateNote: "", lastVisited: "" },
             { name: "Brij Mohan Meena Ji", photo: "", address: "Dausa, Rajasthan", link: "https://maps.app.goo.gl/HonrgpAunj9xkSyw8", tags: ["Dausa", "Home"], privateNote: "", lastVisited: "" },
@@ -618,9 +629,10 @@
         let tileLayer = null;
         let clusterGroup = null;
         let db = null;
+        let auth = null;
         let deferredInstallPrompt = null;
 
-        // Initialize App
+        // ==================== INIT ====================
         window.addEventListener('DOMContentLoaded', () => {
             initTheme();
             setupPWA();
@@ -630,7 +642,7 @@
             initFirebase();
         });
 
-        // 1. Dark / Light Theme Proper Management
+        // ==================== THEME ====================
         function initTheme() {
             const savedTheme = localStorage.getItem('family_space_theme') || 'dark';
             applyTheme(savedTheme);
@@ -675,7 +687,7 @@
             }).addTo(map);
         }
 
-        // 2. Toast Notification System (Replaces alert())
+        // ==================== TOAST ====================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -700,7 +712,7 @@
             }, 3200);
         }
 
-        // 3. Skeleton Loading Cards
+        // ==================== SKELETON ====================
         function renderSkeletons() {
             const grid = document.getElementById('directory-grid');
             grid.innerHTML = Array(6).fill(0).map(() => `
@@ -721,7 +733,7 @@
             `).join('');
         }
 
-        // 4. Firebase Initialization (Same Firestore collection/doc)
+        // ==================== FIREBASE + AUTH ====================
         function initFirebase() {
             try {
                 const firebaseConfig = {
@@ -737,7 +749,21 @@
                     firebase.initializeApp(firebaseConfig);
                 }
                 db = firebase.firestore();
+                auth = firebase.auth();
 
+                // Auth state listener
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        isAdmin = true;
+                        updateAdminUI(true, user.email);
+                    } else {
+                        isAdmin = false;
+                        updateAdminUI(false);
+                    }
+                    renderDirectory();
+                });
+
+                // Firestore listener
                 db.collection("family_space").doc("data").onSnapshot((doc) => {
                     isLoading = false;
                     if (doc.exists) {
@@ -769,6 +795,78 @@
             }
         }
 
+        function updateAdminUI(loggedIn, email = '') {
+            const btnText = document.getElementById('admin-btn-text');
+            const mobileLabel = document.getElementById('mobile-admin-label');
+            const quickActions = document.getElementById('admin-quick-actions');
+            const editNoticeBtn = document.getElementById('edit-notice-btn');
+            const loginSection = document.getElementById('login-form-section');
+            const loggedInSection = document.getElementById('logged-in-section');
+            const modalTitle = document.getElementById('admin-modal-title');
+
+            if (loggedIn) {
+                btnText.innerText = "Admin ✓";
+                mobileLabel.innerText = "Admin ✓";
+                quickActions.classList.remove('hidden');
+                editNoticeBtn.classList.remove('hidden');
+                loginSection.classList.add('hidden');
+                loggedInSection.classList.remove('hidden');
+                document.getElementById('logged-in-email').innerText = email;
+                modalTitle.innerText = "Admin Panel";
+            } else {
+                btnText.innerText = "Admin";
+                mobileLabel.innerText = "Admin";
+                quickActions.classList.add('hidden');
+                editNoticeBtn.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+                loggedInSection.classList.add('hidden');
+                modalTitle.innerText = "Admin Login";
+            }
+        }
+
+        function loginAdmin() {
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value;
+
+            if (!email || !password) {
+                showToast("Please enter email and password", "error");
+                return;
+            }
+
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Logging in...`;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    showToast("Admin login successful!", "success");
+                    closeAdminModal();
+                    document.getElementById('admin-email').value = '';
+                    document.getElementById('admin-password').value = '';
+                })
+                .catch((error) => {
+                    console.error(error);
+                    let msg = "Login failed. Check email & password.";
+                    if (error.code === 'auth/user-not-found') msg = "No admin account found with this email.";
+                    if (error.code === 'auth/wrong-password') msg = "Incorrect password.";
+                    if (error.code === 'auth/invalid-email') msg = "Invalid email format.";
+                    showToast(msg, "error");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login as Admin`;
+                });
+        }
+
+        function logoutAdmin() {
+            auth.signOut().then(() => {
+                showToast("Logged out successfully", "info");
+                closeAdminModal();
+            }).catch((error) => {
+                showToast("Logout failed", "error");
+            });
+        }
+
         function updateCloudStatus(connected) {
             const badge = document.getElementById('cloud-status-badge');
             const text = document.getElementById('cloud-status-text');
@@ -787,12 +885,11 @@
             document.getElementById('last-synced-footer').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Last synced: Today at ${timeStr}`;
         }
 
-        // 5. Coordinate Helper & Distance Calculation (Haversine)
+        // ==================== MAP & DISTANCE ====================
         function getItemCoords(item, index = 0) {
             for (let tag in cityCoords) {
                 if ((item.address && item.address.toLowerCase().includes(tag.toLowerCase())) ||
                     (item.tags && item.tags.some(t => t.toLowerCase() === tag.toLowerCase()))) {
-                    // Slight deterministic offset so multiple members in Jaipur don't have identical coordinates
                     const offsetLat = ((index % 5) - 2) * 0.008;
                     const offsetLng = (((index * 2) % 5) - 2) * 0.008;
                     return [cityCoords[tag][0] + offsetLat, cityCoords[tag][1] + offsetLng];
@@ -812,7 +909,6 @@
             return Math.round(R * c);
         }
 
-        // 6. Map + Marker Clustering + Custom Avatar/Letter Markers
         function initMap() {
             if (map) map.remove();
             map = L.map('digital-map', {
@@ -912,7 +1008,7 @@
             renderMapFilterPills();
         }
 
-        // 7. Render All Components
+        // ==================== RENDER ====================
         function renderAll() {
             renderStats();
             renderFeaturedLocations();
@@ -994,7 +1090,6 @@
 
             document.getElementById('filtered-count-badge').innerText = filtered.length;
 
-            // Empty State with Illustration & Clear Filters
             if (filtered.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full py-12 px-4 text-center flex flex-col items-center justify-center">
@@ -1022,7 +1117,7 @@
                         <div class="flex items-start justify-between gap-2">
                             ${hasPhoto
                                 ? `<img src="${escapeHTML(item.photo)}" alt="${initial}" onclick="openLightbox('${escapeHTML(item.photo)}', '${escapeHTML(item.name)}', '${escapeHTML(item.address)}', '${escapeHTML(item.link)}')"
-                                    class="w-13 h-13 w-12 h-12 rounded-2xl object-cover cursor-pointer border-2 border-blue-500/40 shadow-md hover:scale-105 transition">`
+                                    class="w-12 h-12 rounded-2xl object-cover cursor-pointer border-2 border-blue-500/40 shadow-md hover:scale-105 transition">`
                                 : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-md">
                                     ${initial}
                                    </div>`
@@ -1110,7 +1205,7 @@
             container.innerHTML = html;
         }
 
-        // 8. Near Me (Actual Distance + Sort by Distance)
+        // ==================== NEAR ME ====================
         function findNearMe() {
             if (!navigator.geolocation) {
                 showToast("Geolocation is not supported by your browser", "error");
@@ -1137,7 +1232,6 @@
             showToast("Distance sorting cleared", "info");
         }
 
-        // 9. Location History ("Last visited")
         function recordVisit(name) {
             const idx = familyData.findIndex(m => m.name === name);
             if (idx !== -1) {
@@ -1148,7 +1242,7 @@
             }
         }
 
-        // 10. Image Lightbox
+        // ==================== LIGHTBOX ====================
         function openLightbox(photoUrl, name, address, link) {
             document.getElementById('lightbox-img').src = photoUrl;
             document.getElementById('lightbox-title').innerText = name;
@@ -1161,7 +1255,6 @@
             document.getElementById('lightbox-modal').classList.add('hidden');
         }
 
-        // 11. Photo Upload Helper (Compresses image so Firestore stays fast & lightweight)
         function handlePhotoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1186,44 +1279,23 @@
             reader.readAsDataURL(file);
         }
 
-        // 12. Admin Mode (Passcode 0000) + Add / Edit / Delete
+        // ==================== ADMIN MODAL ====================
         function openAdminModal() {
-            if (isAdmin) {
-                isAdmin = false;
-                document.getElementById('admin-btn-text').innerText = "Admin";
-                document.getElementById('mobile-admin-label').innerText = "Admin";
-                document.getElementById('admin-quick-actions').classList.add('hidden');
-                document.getElementById('edit-notice-btn').classList.add('hidden');
-                renderDirectory();
-                showToast("Admin Mode locked", "info");
-                return;
-            }
             document.getElementById('admin-modal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('admin-pin-input').focus(), 100);
+            if (!isAdmin) {
+                setTimeout(() => document.getElementById('admin-email').focus(), 100);
+            }
         }
 
         function closeAdminModal() {
             document.getElementById('admin-modal').classList.add('hidden');
         }
 
-        function verifyAdminPin() {
-            const pin = document.getElementById('admin-pin-input').value;
-            if (pin === "2002") {
-                isAdmin = true;
-                document.getElementById('admin-btn-text').innerText = "Admin ✓";
-                document.getElementById('mobile-admin-label').innerText = "Admin ✓";
-                document.getElementById('admin-quick-actions').classList.remove('hidden');
-                document.getElementById('edit-notice-btn').classList.remove('hidden');
-                closeAdminModal();
-                document.getElementById('admin-pin-input').value = "";
-                renderDirectory();
-                showToast("Admin Mode Unlocked!", "success");
-            } else {
-                showToast("Incorrect PIN! Please enter 2002", "error");
-            }
-        }
-
         function openAddMemberModal() {
+            if (!isAdmin) {
+                showToast("Please login as Admin first", "error");
+                return;
+            }
             document.getElementById('edit-index').value = "-1";
             document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-user-plus text-emerald-500"></i> Add New Member / House`;
             document.getElementById('member-form').reset();
@@ -1235,6 +1307,7 @@
         }
 
         function editMember(index) {
+            if (!isAdmin) return;
             const item = familyData[index];
             document.getElementById('edit-index').value = index;
             document.getElementById('form-name').value = item.name;
@@ -1248,6 +1321,7 @@
         }
 
         function deleteMember(index) {
+            if (!isAdmin) return;
             const target = familyData[index];
             if (!target) return;
             if (confirm(`Remove "${target.name}" from the family directory?`)) {
@@ -1261,6 +1335,10 @@
 
         function saveMemberForm(e) {
             e.preventDefault();
+            if (!isAdmin) {
+                showToast("Admin login required", "error");
+                return;
+            }
             const idx = parseInt(document.getElementById('edit-index').value);
             const existing = idx !== -1 ? familyData[idx] : {};
 
@@ -1287,6 +1365,7 @@
         }
 
         function editNoticePrompt() {
+            if (!isAdmin) return;
             const current = document.getElementById('notice-display-text').innerText;
             const newNotice = prompt("Enter new live notice for all family members:", current);
             if (newNotice && newNotice.trim()) {
@@ -1296,21 +1375,24 @@
         }
 
         function syncToCloud(silent = false) {
-            if (db) {
-                db.collection("family_space").doc("data").set({
-                    members: familyData,
-                    notice: document.getElementById('notice-display-text').innerText
-                }).then(() => {
-                    updateLastSyncedTime();
-                    if (!silent) showToast("Synced to cloud across all devices", "cloud");
-                }).catch(err => {
-                    console.error("Sync error:", err);
-                    if (!silent) showToast("Cloud sync failed. Check internet.", "error");
-                });
+            if (!db) return;
+            if (!isAdmin && !silent) {
+                showToast("Only admin can make changes", "error");
+                return;
             }
+            db.collection("family_space").doc("data").set({
+                members: familyData,
+                notice: document.getElementById('notice-display-text').innerText
+            }).then(() => {
+                updateLastSyncedTime();
+                if (!silent) showToast("Synced to cloud across all devices", "cloud");
+            }).catch(err => {
+                console.error("Sync error:", err);
+                if (!silent) showToast("Cloud sync failed. Make sure you are logged in as Admin.", "error");
+            });
         }
 
-        // 13. Trip Planner Modal
+        // ==================== TRIP PLANNER ====================
         function openRoutePlanner() {
             const fromSel = document.getElementById('trip-from');
             const toSel = document.getElementById('trip-to');
@@ -1341,7 +1423,7 @@
             document.getElementById('trip-gmaps-btn').href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(familyData[i1].address)}&destination=${encodeURIComponent(familyData[i2].address)}`;
         }
 
-        // 14. Export Directory (Excel & PDF)
+        // ==================== EXPORT ====================
         function toggleExportMenu() {
             document.getElementById('export-dropdown').classList.toggle('hidden');
         }
@@ -1393,7 +1475,7 @@
             showToast("PDF directory downloaded!", "success");
         }
 
-        // 15. Pull-to-Refresh on Mobile
+        // ==================== PULL TO REFRESH ====================
         function setupPullToRefresh() {
             let startY = 0;
             let pulling = false;
@@ -1438,7 +1520,7 @@
             });
         }
 
-        // 16. PWA Setup (Dynamic Web Manifest)
+        // ==================== PWA ====================
         function setupPWA() {
             const manifest = {
                 name: "FAMILY SPACE — Meena Family Directory",
@@ -1475,7 +1557,7 @@
             deferredInstallPrompt = null;
         }
 
-        // Navigation & Security Helpers
+        // ==================== HELPERS ====================
         function scrollToSection(id) {
             const el = document.getElementById(id);
             if (el) el.scrollIntoView({ behavior: 'smooth' });
