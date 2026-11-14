@@ -1810,7 +1810,10 @@
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
       if (tileLayer) state.leafletMap.removeLayer(tileLayer);
-      tileLayer = L.tileLayer(url, { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18 }).addTo(state.leafletMap);
+      tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                      maxZoom: 19,
+                      attribution: '© OpenStreetMap contributors'
+                  }).addTo(map);
     }
 
     function renderDigitalMap() {
