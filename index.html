@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAMILY SPACE • Next-Gen Live Family Portal</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            obsidian: {
+              950: '#050811',
+              900: '#0a0f1e',
+              850: '#0f1629',
+              800: '#161f38',
+              700: '#232f4e',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Leaflet.js CSS & JS for Embedded Interactive Digital Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- QRCode.js for Instant Location QR Cards -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Next-Gen 2026 Bento Card Micro-Interactions */
+    .bento-card {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .bento-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Subtle ambient glow accents */
+    .hero-mesh {
+      background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.14) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 55%);
+    }
+
+    /* Custom Leaflet Pin & Avatar Marker */
+    .leaflet-container {
+      font-family: 'Inter', sans-serif !important;
+      z-index: 10;
+    }
+    .map-avatar-pin {
+      width: 38px;
+      height: 38px;
+      border-radius: 9999px;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 12px;
+      color: #ffffff;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.2s ease;
+    }
+    .map-avatar-pin:hover {
+      transform: scale(1.18);
+      z-index: 999 !important;
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @media print {
+      body { background: #ffffff !important; color: #0f172a !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      .bento-card {
+        break-inside: avoid;
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+      #directoryGrid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-obsidian-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- PRIVACY LOCK OVERLAY (4-Digit PIN)                                    -->
+  <!-- ===================================================================== -->
+  <div id="privacyLockOverlay" class="fixed inset-0 z-50 hidden bg-slate-950/95 dark:bg-obsidian-950/98 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+    <div class="w-full max-w-md bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-7 shadow-2xl text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+        <i data-lucide="lock" class="w-7 h-7"></i>
+      </div>
+      <span class="text-[11px] font-bold tracking-widest uppercase text-indigo-500">FAMILY SPACE SECURITY</span>
+      <h2 id="lockTitle" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Directory Locked</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Enter your 4-digit Family PIN to unlock addresses &amp; live map.</p>
+
+      <form id="unlockForm" class="mt-6 space-y-4">
+        <div>
+          <label for="pinInput" class="sr-only">4-Digit PIN</label>
+          <input id="pinInput" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="off"
+            class="w-44 mx-auto block text-center text-2xl tracking-[0.6em] font-bold py-3 px-4 rounded-2xl bg-slate-100 dark:bg-obsidian-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+          <p id="pinErrorMsg" class="text-xs text-rose-500 mt-2 hidden" role="alert">Incorrect PIN. Please try again.</p>
+        </div>
+        <button type="submit" class="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+          <i data-lucide="unlock" class="w-4 h-4"></i>
+          Unlock Family Portal
+        </button>
+      </form>
+      <p id="pinHintDisplay" class="mt-4 text-xs text-slate-500">Default PIN: <span class="font-mono font-semibold text-slate-300">1234</span></p>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- ADMIN SECRET PASSCODE MODAL (CODE: 2002)                              -->
+  <!-- ===================================================================== -->
+  <div id="adminPasscodeModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="adminGateTitle">
+    <div class="w-full max-w-sm bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-violet-500/15 text-violet-400 flex items-center justify-center border border-violet-500/20">
+            <i data-lucide="key-round" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="adminGateTitle" class="text-base font-extrabold text-slate-900 dark:text-white">Admin Access</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Authorized Family Editors Only</p>
+          </div>
+        </div>
+        <button id="closeAdminGateBtn" type="button" aria-label="Close" class="p-1.5 rounded-xl text-slate-400 hover:text-white cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="adminPasscodeForm" class="space-y-4">
+        <div>
+          <label for="adminCodeInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Enter Secret Admin Passcode</label>
+          <input id="adminCodeInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off"
+            class="w-full text-center text-xl tracking-[0.5em] font-bold py-3 px-4 rounded-2xl bg-slate-100 dark:bg-obsidian-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500" required />
+          <p id="adminCodeError" class="text-xs text-rose-500 mt-1.5 hidden">Invalid passcode. Access denied.</p>
+        </div>
+        <button type="submit" class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Verify &amp; Unlock Admin Panel
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TOP NAVIGATION PILL BAR                                               -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-30 bg-white/95 dark:bg-obsidian-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      <!-- Brand + Live Sync Badge -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-emerald-500 flex items-center justify-center text-white font-display font-extrabold text-sm shrink-0 shadow-md">
+          FS
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="font-display font-extrabold tracking-tight text-sm sm:text-base text-slate-900 dark:text-white">FAMILY SPACE</span>
+            <!-- Real-Time Cloud Sync Status Indicator -->
+            <span id="syncStatusPill" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span id="syncStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="syncStatusText">Connecting Cloud...</span>
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate hidden sm:block">Meena Family Live Directory &amp; Digital Map • 2026</p>
+        </div>
+      </div>
+
+      <!-- Right Utility Controls -->
+      <nav aria-label="Portal Controls" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Nearby Me GPS Finder (New Feature #4) -->
+        <button id="nearbyGpsBtn" type="button" title="Find Nearest Family Member via GPS"
+          class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-obsidian-850 text-slate-700 dark:text-slate-200 hover:border-emerald-500/50 transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="locate-fixed" class="w-4 h-4 text-emerald-500"></i>
+          <span class="hidden md:inline">Near Me</span>
+        </button>
+
+        <!-- Admin Mode Gate (Code: 2002) -->
+        <button id="toggleAdminBtn" type="button" aria-pressed="false" title="Admin Edit Mode (Passcode Protected)"
+          class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-obsidian-850 text-slate-700 dark:text-slate-200 hover:border-violet-500/50 transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="shield-check" class="w-4 h-4 text-violet-500"></i>
+          <span id="adminBtnLabel">Admin</span>
+        </button>
+
+        <!-- Privacy PIN Lock -->
+        <button id="openLockSettingsBtn" type="button" title="Privacy PIN Lock" aria-label="Privacy PIN Lock"
+          class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-obsidian-850 text-slate-700 dark:text-slate-200 hover:border-indigo-500/50 transition cursor-pointer">
+          <i data-lucide="lock" class="w-4 h-4 text-indigo-400"></i>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" type="button" aria-label="Switch Theme" title="Toggle Dark/Light Theme"
+          class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-obsidian-850 text-slate-700 dark:text-slate-200 hover:border-indigo-500/50 transition cursor-pointer">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-slate-700"></i>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN 2026 BENTO DASHBOARD & LIVE PORTAL                               -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+    <!-- Print-only Header -->
+    <div class="hidden print-only border-b border-slate-300 pb-4 mb-4">
+      <h1 class="text-2xl font-bold">FAMILY SPACE — Meena Family Directory</h1>
+      <p class="text-sm text-slate-600">One family. Multiple locations. One connection.</p>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- NEW FEATURE #1: LIVE FAMILY NOTICEBOARD / ANNOUNCEMENTS TICKER      -->
+    <!-- =================================================================== -->
+    <section aria-label="Family Noticeboard" class="bg-gradient-to-r from-indigo-600/10 via-violet-600/10 to-emerald-500/10 border border-indigo-500/25 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-wider shrink-0 flex items-center gap-1">
+          <i data-lucide="megaphone" class="w-3 h-3"></i> Live Notice
+        </span>
+        <p id="liveAnnouncementText" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+          Welcome to FAMILY SPACE 2026! Click any pin on the live digital map below for instant navigation.
+        </p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="liveAnnouncementMeta" class="text-[11px] text-slate-500 dark:text-slate-400">Synced live across all devices</span>
+        <button id="editNoticeQuickBtn" type="button" class="hidden px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-semibold transition cursor-pointer">
+          Update Notice
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- BENTO ROW 1: HERO BRANDING + STATS + UPCOMING EVENTS RADAR          -->
+    <!-- =================================================================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- Left Hero Card (7 cols) -->
+      <div class="lg:col-span-7 hero-mesh bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-sm">
+        <div class="space-y-2.5">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            PRIVATE FAMILY DIRECTORY • LIVE CLOUD
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Our Family <span aria-hidden="true">❤️</span>
+          </h1>
+          <p class="text-sm text-slate-600 dark:text-slate-400 max-w-xl">
+            One family. Multiple locations. One connection. Explore homes, members, and sacred Devta Sthal live on our interactive Rajasthan digital map.
+          </p>
+        </div>
+
+        <!-- Quick Action Pills -->
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <button id="quickFocusSearchBtn" type="button" class="px-4 py-2.5 rounded-2xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i> Search Directory
+          </button>
+          <button id="quickTripPlannerBtn" type="button" class="px-4 py-2.5 rounded-2xl text-xs font-semibold bg-slate-100 dark:bg-obsidian-900 hover:bg-slate-200 dark:hover:bg-obsidian-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="route" class="w-3.5 h-3.5 text-violet-400"></i> Trip Route Planner
+          </button>
+          <button id="quickCopyPortalBtn" type="button" class="px-4 py-2.5 rounded-2xl text-xs font-semibold bg-slate-100 dark:bg-obsidian-900 hover:bg-slate-200 dark:hover:bg-obsidian-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-400"></i> Share Portal Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Bento Column: Stats + Birthday/Event Radar (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+        <!-- 3 Stat Pills -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 text-center">
+            <div class="w-8 h-8 mx-auto mb-1.5 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <div id="statMembersCount" class="text-2xl font-extrabold font-display text-slate-900 dark:text-white">8</div>
+            <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Members</div>
+          </div>
+
+          <div class="bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 text-center">
+            <div class="w-8 h-8 mx-auto mb-1.5 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center">
+              <i data-lucide="building-2" class="w-4 h-4"></i>
+            </div>
+            <div id="statCitiesCount" class="text-2xl font-extrabold font-display text-slate-900 dark:text-white">6</div>
+            <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Cities</div>
+          </div>
+
+          <div class="bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 text-center">
+            <div class="w-8 h-8 mx-auto mb-1.5 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </div>
+            <div id="statLocationsCount" class="text-2xl font-extrabold font-display text-slate-900 dark:text-white">10</div>
+            <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Locations</div>
+          </div>
+        </div>
+
+        <!-- NEW FEATURE #2: BIRTHDAY & FAMILY EVENT RADAR -->
+        <div class="flex-1 bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
+              Upcoming Family Events Radar
+            </h2>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-500">Live</span>
+          </div>
+          <ul id="upcomingEventsList" class="space-y-2 text-xs">
+            <!-- Populated safely via JS -->
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ADMIN EDIT TOOLBAR (UNLOCKED ONLY WITH PASSCODE 2002)               -->
+    <!-- =================================================================== -->
+    <section id="adminToolbar" aria-label="Admin Management Panel" class="hidden bg-gradient-to-r from-violet-600/15 via-indigo-600/15 to-purple-600/15 border border-violet-500/40 rounded-3xl p-5 no-print">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-md">
+            <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-extrabold text-slate-900 dark:text-white">Admin Control Center</h2>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-600 text-white">CODE 2002 VERIFIED</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+              Changes made here sync live to all family members opening this website—no HTML editing required.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="openAddMemberModalBtn" type="button" class="px-4 py-2.5 rounded-2xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Add Member / House
+          </button>
+          <button id="openNoticeModalBtn" type="button" class="px-3.5 py-2.5 rounded-2xl text-xs font-semibold bg-white dark:bg-obsidian-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-indigo-500 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="megaphone" class="w-3.5 h-3.5 text-indigo-400"></i> Post Notice
+          </button>
+          <button id="openCloudConfigBtn" type="button" class="px-3.5 py-2.5 rounded-2xl text-xs font-semibold bg-white dark:bg-obsidian-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-emerald-500 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="cloud" class="w-3.5 h-3.5 text-emerald-400"></i> Live Sync Setup
+          </button>
+          <button id="lockAdminBtn" type="button" class="px-3.5 py-2.5 rounded-2xl text-xs font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-500 hover:bg-rose-500/20 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i> Exit Admin
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ALWAYS-VISIBLE EMBEDDED DIGITAL MAP + TRIP ROUTE PLANNER            -->
+    <!-- =================================================================== -->
+    <section aria-labelledby="liveDigitalMapHeading" class="bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm no-print">
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 id="liveDigitalMapHeading" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <i data-lucide="map-pinned" class="w-5 h-5 text-indigo-500"></i>
+              Live Digital Family Map — Rajasthan
+            </h2>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">INTERACTIVE</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Click any family avatar or house marker on the digital map for photos, directions, QR code &amp; WhatsApp share.
+          </p>
+        </div>
+
+        <!-- Map Legend + Quick Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-xl bg-indigo-500/10 text-indigo-500">
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Member
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-500">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> House
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-xl bg-violet-500/10 text-violet-500">
+            <span class="w-2 h-2 rounded-full bg-violet-500"></span> Devta / Special
+          </span>
+          <button id="fitAllMarkersBtn" type="button" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-obsidian-900 hover:bg-indigo-600 hover:text-white text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
+            Reset View
+          </button>
+        </div>
+      </div>
+
+      <!-- City Quick-Fly Bar -->
+      <div id="cityOverviewBar" class="px-4 py-2.5 bg-slate-50/80 dark:bg-obsidian-900/80 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <!-- Populated safely via JS -->
+      </div>
+
+      <!-- Embedded Live Map Canvas -->
+      <div id="familyLeafletMap" class="w-full h-[360px] sm:h-[440px] bg-slate-100 dark:bg-obsidian-950"></div>
+
+      <!-- NEW FEATURE #5: MULTI-STOP FAMILY TRIP & ROUTE PLANNER BAR -->
+      <div id="tripPlannerDrawer" class="hidden p-4 sm:p-5 bg-slate-50 dark:bg-obsidian-900 border-t border-slate-200 dark:border-slate-800 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-violet-500 flex items-center gap-1.5">
+            <i data-lucide="route" class="w-4 h-4"></i> Family Travel Route &amp; Distance Planner
+          </h3>
+          <button id="closeTripPlannerBtn" type="button" class="text-xs text-slate-400 hover:text-white cursor-pointer">Hide</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+          <div>
+            <label for="tripStartSelect" class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Start Location</label>
+            <select id="tripStartSelect" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"></select>
+          </div>
+          <div>
+            <label for="tripEndSelect" class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Destination Location</label>
+            <select id="tripEndSelect" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"></select>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="drawRouteBtn" type="button" class="flex-1 py-2 px-4 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition cursor-pointer">
+              Draw Route on Map
+            </button>
+            <button id="clearRouteBtn" type="button" class="py-2 px-3 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-obsidian-800 text-slate-700 dark:text-slate-300 cursor-pointer">
+              Clear
+            </button>
+          </div>
+        </div>
+        <div id="tripSummaryBanner" class="hidden text-xs font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-3.5 py-2"></div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- FEATURED HOUSES & SACRED PLACES + LIVE AUDIT / RECENT FEED          -->
+    <!-- =================================================================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <!-- Featured Houses & Sacred Places (2 cols) -->
+      <div class="lg:col-span-2 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-violet-500"></i>
+            Featured Family Houses &amp; Sacred Places
+          </h2>
+          <span class="text-xs text-slate-500">Ancestral Anchors</span>
+        </div>
+        <div id="featuredLocationsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Populated safely via JS with House/Temple photos -->
+        </div>
+      </div>
+
+      <!-- NEW FEATURE #7: LIVE AUDIT LOG & RECENT ACTIVITY (1 col) -->
+      <div class="space-y-3 no-print">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i>
+            Live Activity &amp; Audit Feed
+          </h2>
+          <button id="clearRecentBtn" type="button" class="text-xs text-slate-500 hover:text-slate-300 cursor-pointer">Clear</button>
+        </div>
+        <div class="bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 min-h-[190px] flex flex-col justify-between">
+          <ul id="recentActivityList" class="space-y-2.5 text-xs">
+            <!-- Populated safely via JS -->
+          </ul>
+          <p class="text-[11px] text-slate-400 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800">
+            Tracks opened locations &amp; real-time Admin updates.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- FAMILY DIRECTORY WITH PHOTOS, SEARCH, FILTERS & QR CARDS            -->
+    <!-- =================================================================== -->
+    <section aria-labelledby="directoryHeading" class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 id="directoryHeading" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            Family Members &amp; Houses Directory
+            <span id="filteredResultBadge" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-indigo-500/15 text-indigo-500">10</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Tap any card for member/house photos, QR code card, WhatsApp connect &amp; directions.</p>
+        </div>
+
+        <!-- Export JSON/CSV & Print -->
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <button id="exportJsonBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="file-json" class="w-3.5 h-3.5 text-indigo-400"></i> JSON
+          </button>
+          <button id="exportCsvBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-400"></i> CSV
+          </button>
+          <button id="printDirectoryBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 hover:border-violet-500/50 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="printer" class="w-3.5 h-3.5 text-violet-400"></i> Print
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter & Search Controls -->
+      <div class="bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 space-y-3.5 no-print">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div class="md:col-span-5 relative">
+            <label for="directorySearchInput" class="sr-only">Search family members, cities, or houses</label>
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input id="directorySearchInput" type="search" placeholder="Search name, city, house, tag..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="md:col-span-3">
+            <label for="categoryFilterSelect" class="sr-only">Category Filter</label>
+            <select id="categoryFilterSelect" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+              <option value="ALL">All Categories</option>
+              <option value="Member">Family Members</option>
+              <option value="Home">Family Houses</option>
+              <option value="Temple">Temples / Sacred Places</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="sortOrderSelect" class="sr-only">Sort Directory</label>
+            <select id="sortOrderSelect" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+              <option value="DEFAULT">Sort: Pinned First</option>
+              <option value="NEAREST">Sort: Nearest to Me</option>
+              <option value="AZ">Name: A → Z</option>
+              <option value="ZA">Name: Z → A</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2 flex items-center justify-end">
+            <div class="inline-flex rounded-2xl bg-slate-100 dark:bg-obsidian-900 p-1 border border-slate-200 dark:border-slate-700/80 w-full md:w-auto">
+              <button id="viewGridBtn" type="button" class="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-obsidian-850 text-indigo-500 shadow-sm flex items-center justify-center gap-1 cursor-pointer">
+                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Grid
+              </button>
+              <button id="viewListBtn" type="button" class="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 flex items-center justify-center gap-1 cursor-pointer">
+                <i data-lucide="list" class="w-3.5 h-3.5"></i> List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- City Filter Pills -->
+        <div id="cityFilterPills" class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1" role="tablist"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyDirectoryState" class="hidden bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center space-y-3">
+        <i data-lucide="search-x" class="w-8 h-8 mx-auto text-slate-400"></i>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">No matching members or houses</h3>
+        <button id="resetFiltersBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white cursor-pointer">Reset Filters</button>
+      </div>
+
+      <!-- Directory Grid -->
+      <div id="directoryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- FOOTER                                                                -->
+  <!-- ===================================================================== -->
+  <footer class="border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-obsidian-950 py-6 mt-12 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+      <div class="font-display font-bold tracking-wider text-slate-700 dark:text-slate-300">FAMILY SPACE • EST. 2026</div>
+      <div>Live Cloud Family Directory • Admin edits sync automatically across all family devices.</div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: PROFILE DETAILS, PHOTO LIGHTBOX, QR CODE & DISTANCE          -->
+  <!-- ===================================================================== -->
+  <div id="profileDetailsModal" class="fixed inset-0 z-40 hidden bg-slate-950/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-xl bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+      <!-- Top Photo Banner -->
+      <div class="relative h-44 bg-gradient-to-br from-indigo-900 via-violet-900 to-obsidian-950">
+        <img id="detailCoverPhoto" src="" alt="" class="w-full h-full object-cover opacity-85" />
+        <button id="closeDetailModalBtn" type="button" aria-label="Close" class="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/75 transition cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+        <div class="absolute bottom-3 left-5 right-5 flex items-end justify-between gap-3">
+          <div class="bg-obsidian-950/85 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-2.5">
+            <h3 id="detailModalName" class="text-lg font-extrabold text-white">Name</h3>
+            <p id="detailModalAddress" class="text-xs text-slate-300 flex items-center gap-1 mt-0.5">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <span>Address</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-5 sm:p-6 space-y-5 max-h-[72vh] overflow-y-auto">
+        <!-- Quick Connect & Navigation Buttons (New Feature #3: Call/WhatsApp) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <a id="detailOpenMapLink" href="#" target="_blank" rel="noopener noreferrer" class="py-2.5 px-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Open Map
+          </a>
+          <a id="detailDirectionsLink" href="#" target="_blank" rel="noopener noreferrer" class="py-2.5 px-3 rounded-2xl bg-slate-100 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5">
+            <i data-lucide="navigation" class="w-3.5 h-3.5 text-violet-400"></i> Directions
+          </a>
+          <a id="detailWhatsappLink" href="#" target="_blank" rel="noopener noreferrer" class="py-2.5 px-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold flex items-center justify-center gap-1.5">
+            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> WhatsApp
+          </a>
+          <a id="detailCallLink" href="#" class="py-2.5 px-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-semibold flex items-center justify-center gap-1.5">
+            <i data-lucide="phone-call" class="w-3.5 h-3.5"></i> Quick Call
+          </a>
+        </div>
+
+        <!-- NEW FEATURE #6: INSTANT SCANNABLE QR LOCATION CARD -->
+        <div class="bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
+          <div id="detailQrContainer" class="p-2.5 bg-white rounded-xl shrink-0"></div>
+          <div class="space-y-1.5 text-center sm:text-left min-w-0 flex-1">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-500">Instant Guest Navigation QR</span>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Scan with any phone camera</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Opens exact Google Maps pin for <span id="qrMemberLabel" class="font-semibold"></span>.</p>
+            <button id="detailCopyLinkBtn" type="button" class="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-500 hover:underline cursor-pointer">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Google Maps URL
+            </button>
+          </div>
+        </div>
+
+        <!-- Distance Calculator -->
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-3">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Distance Between Family Locations</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <select id="distanceFromSelect" class="px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"></select>
+            <select id="distanceToSelect" class="px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"></select>
+          </div>
+          <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-3 flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-slate-400 block">Estimated Road Distance</span>
+              <span id="distanceKmValue" class="text-base font-extrabold font-display text-indigo-400">— km</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 block">Approx. Drive Time</span>
+              <span id="distanceTimeValue" class="text-sm font-bold text-slate-200">— hrs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: ADMIN ADD / EDIT MEMBER & HOUSE PHOTO UPLOADER               -->
+  <!-- ===================================================================== -->
+  <div id="memberFormModal" class="fixed inset-0 z-40 hidden bg-slate-950/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-lg bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <h3 id="memberFormTitle" class="text-lg font-extrabold text-slate-900 dark:text-white">Add Family Member / House</h3>
+        <button id="closeMemberFormBtn" type="button" class="p-1.5 rounded-xl text-slate-400 hover:text-white cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="memberEditForm" class="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <input type="hidden" id="editMemberId" />
+
+        <!-- Live Photo Upload & Preview (Gallery File Upload OR URL) -->
+        <div class="bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-center gap-4">
+          <img id="photoPreviewImg" src="" alt="Preview" class="w-16 h-16 rounded-2xl object-cover bg-obsidian-800 border border-slate-700 shrink-0" />
+          <div class="flex-1 space-y-2 min-w-0">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-200">Member Portrait or House Photo</label>
+            <div class="flex flex-wrap items-center gap-2">
+              <label for="memberPhotoFileInput" class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5">
+                <i data-lucide="camera" class="w-3.5 h-3.5"></i> Upload Photo
+              </label>
+              <input id="memberPhotoFileInput" type="file" accept="image/*" class="hidden" />
+              <button id="clearPhotoBtn" type="button" class="text-[11px] text-slate-400 hover:text-rose-400 cursor-pointer">Use Default</button>
+            </div>
+            <input id="memberPhotoInput" type="text" placeholder="Or paste image URL (https://...)" class="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label for="memberNameInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name / House Name *</label>
+          <input id="memberNameInput" type="text" required placeholder="e.g., Roop Narayan Meena Ji" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="memberAddressInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">City / Address *</label>
+            <input id="memberAddressInput" type="text" required placeholder="e.g., Jaipur, Rajasthan" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+          </div>
+          <div>
+            <label for="memberCategoryInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category *</label>
+            <select id="memberCategoryInput" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+              <option value="Member">Member</option>
+              <option value="Home">House / Home</option>
+              <option value="Temple">Temple / Special Place</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="memberLinkInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Google Maps Link *</label>
+          <input id="memberLinkInput" type="url" required placeholder="https://maps.app.goo.gl/..." class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="memberPhoneInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Phone / WhatsApp (Optional)</label>
+            <input id="memberPhoneInput" type="tel" placeholder="+91 98290 XXXXX" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+          </div>
+          <div>
+            <label for="memberTagsInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tags (comma separated)</label>
+            <input id="memberTagsInput" type="text" placeholder="Jaipur, Home" class="w-full px-3.5 py-2.5 rounded-2xl text-sm bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+          <button type="button" id="cancelMemberFormBtn" class="px-4 py-2.5 rounded-2xl text-xs font-semibold bg-slate-100 dark:bg-obsidian-900 text-slate-700 dark:text-slate-300 cursor-pointer">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-2xl text-xs font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm cursor-pointer">
+            Save &amp; Sync Live
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: LIVE NOTICEBOARD & UPCOMING EVENT EDITOR (ADMIN)             -->
+  <!-- ===================================================================== -->
+  <div id="noticeModal" class="fixed inset-0 z-40 hidden bg-slate-950/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-md bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Broadcast Live Family Notice</h3>
+        <button id="closeNoticeModalBtn" type="button" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="noticeForm" class="space-y-4">
+        <div>
+          <label for="noticeTextInput" class="block text-xs font-semibold text-slate-300 mb-1">Announcement Banner Message</label>
+          <textarea id="noticeTextInput" rows="3" required class="w-full p-3 rounded-2xl text-xs bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label for="eventTitleInput" class="block text-xs font-semibold text-slate-300 mb-1">Add Family Event (Optional)</label>
+            <input id="eventTitleInput" type="text" placeholder="e.g., Devta Puja Gathering" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+          </div>
+          <div>
+            <label for="eventDateInput" class="block text-xs font-semibold text-slate-300 mb-1">Event Date</label>
+            <input id="eventDateInput" type="date" class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold cursor-pointer">
+          Publish Live to All Devices
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 4: LIVE MULTI-DEVICE CLOUD SYNC SETUP (FIREBASE CONFIG)         -->
+  <!-- ===================================================================== -->
+  <div id="cloudConfigModal" class="fixed inset-0 z-40 hidden bg-slate-950/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-lg bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="cloud" class="w-5 h-5 text-emerald-400"></i> Live Multi-Device Cloud Database
+        </h3>
+        <button id="closeCloudConfigBtn" type="button" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+        When hosted inside this workspace, real-time cloud sync works automatically. If you host this HTML file on your own domain (GitHub Pages, Vercel, Netlify), paste your free <strong>Firebase Web Config JSON</strong> below so Admin changes update live on every family member's phone!
+      </p>
+      <form id="firebaseConfigForm" class="space-y-3">
+        <label for="firebaseConfigTextarea" class="block text-xs font-semibold text-slate-300">Firebase Config JSON (Optional for external hosting)</label>
+        <textarea id="firebaseConfigTextarea" rows="5" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","appId":"..."}'
+          class="w-full p-3 rounded-2xl font-mono text-xs bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"></textarea>
+        <div class="flex items-center justify-between gap-2">
+          <button id="resetDefaultDataBtn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30 cursor-pointer">
+            Reset 10 Default Records
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
+            Connect Live Cloud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 5: PRIVACY PIN SETTINGS                                         -->
+  <!-- ===================================================================== -->
+  <div id="pinSettingsModal" class="fixed inset-0 z-40 hidden bg-slate-950/80 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-md bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Privacy PIN Lock</h3>
+        <button id="closePinSettingsBtn" type="button" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="flex gap-2">
+        <input id="newPinInput" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="1234" class="flex-1 px-3.5 py-2 rounded-xl text-sm font-mono bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" />
+        <button id="saveNewPinBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-white cursor-pointer">Update PIN</button>
+      </div>
+      <div class="flex gap-2">
+        <button id="lockNowBtn" type="button" class="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white cursor-pointer">Lock Screen Now</button>
+        <button id="toggleAutoLockBtn" type="button" class="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-obsidian-900 border border-slate-700 text-slate-300 cursor-pointer">Auto-Lock: OFF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" aria-live="polite" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- FIREBASE REAL-TIME CLOUD ENGINE + APPLICATION MODULE                  -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* ---------------------------------------------------------------------
+     * 1. CURATED DEFAULT PHOTOS (Portraits, Houses & Sacred Temple Visuals)
+     * --------------------------------------------------------------------- */
+    const VISUAL_PRESETS = {
+      elderMale: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+      youngMale: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+      femalePortrait: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+      modernHouse: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80',
+      heritageHouse: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80',
+      sacredTemple: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=600&q=80'
+    };
+
+    const DEFAULT_FAMILY_DATA = [
+      {
+        id: 'fm-1',
+        name: 'Roop Narayan Meena Ji',
+        photo: VISUAL_PRESETS.elderMale,
+        address: 'Jaipur, Rajasthan',
+        city: 'Jaipur',
+        link: 'https://maps.app.goo.gl/ufqfvXZsrnxZVans9',
+        tags: ['Jaipur', 'Family Elder'],
+        category: 'Member',
+        phone: '',
+        featured: false,
+        lat: 26.9124,
+        lng: 75.7873
+      },
+      {
+        id: 'fm-2',
+        name: 'Brij Mohan Meena Ji',
+        photo: VISUAL_PRESETS.modernHouse,
+        address: 'Dausa, Rajasthan',
+        city: 'Dausa',
+        link: 'https://maps.app.goo.gl/HonrgpAunj9xkSyw8',
+        tags: ['Dausa', 'Home'],
+        category: 'Home',
+        phone: '',
+        featured: false,
+        lat: 26.8932,
+        lng: 76.3375
+      },
+      {
+        id: 'fm-3',
+        name: 'OM Prakash Meena Ji',
+        photo: VISUAL_PRESETS.heritageHouse,
+        address: 'Jaisalmer, Rajasthan',
+        city: 'Jaisalmer',
+        link: 'https://maps.app.goo.gl/A3aDnGWETidrfcAP8',
+        tags: ['Jaisalmer', 'Home'],
+        category: 'Home',
+        phone: '',
+        featured: false,
+        lat: 26.9157,
+        lng: 70.9083
+      },
+      {
+        id: 'fm-4',
+        name: 'Holsingh Meena Ji',
+        photo: VISUAL_PRESETS.elderMale,
+        address: 'Gangapur, Rajasthan',
+        city: 'Gangapur',
+        link: 'https://maps.app.goo.gl/CtAFeX889VmSavFu7',
+        tags: ['Gangapur'],
+        category: 'Member',
+        phone: '',
+        featured: false,
+        lat: 26.4728,
+        lng: 76.7263
+      },
+      {
+        id: 'fm-5',
+        name: 'Snehlata Meena',
+        photo: VISUAL_PRESETS.femalePortrait,
+        address: 'Jaipur, Rajasthan',
+        city: 'Jaipur',
+        link: 'https://maps.app.goo.gl/3Rk4YZ8wkxt6vDw87',
+        tags: ['Jaipur'],
+        category: 'Member',
+        phone: '',
+        featured: false,
+        lat: 26.8854,
+        lng: 75.8021
+      },
+      {
+        id: 'fm-6',
+        name: 'Hemlata Meena',
+        photo: VISUAL_PRESETS.femalePortrait,
+        address: 'Gangapur, Rajasthan',
+        city: 'Gangapur',
+        link: 'https://maps.app.goo.gl/Hnaq8q8zh8MmqHBE9',
+        tags: ['Gangapur'],
+        category: 'Member',
+        phone: '',
+        featured: false,
+        lat: 26.4810,
+        lng: 76.7190
+      },
+      {
+        id: 'fm-7',
+        name: 'Sapana Meena',
+        photo: VISUAL_PRESETS.femalePortrait,
+        address: 'Kota, Rajasthan',
+        city: 'Kota',
+        link: 'https://maps.app.goo.gl/Q2Us5Xj3CV85MoZD6',
+        tags: ['Kota'],
+        category: 'Member',
+        phone: '',
+        featured: false,
+        lat: 25.2138,
+        lng: 75.8648
+      },
+      {
+        id: 'fm-8',
+        name: 'Lokesh Meena',
+        photo: VISUAL_PRESETS.youngMale,
+        address: 'Jaipur, Rajasthan',
+        city: 'Jaipur',
+        link: 'https://maps.app.goo.gl/Wcj1mEityzR9Bpme6',
+        tags: ['Jaipur'],
+        category: 'Member',
+        phone: '',
+        featured: false,
+        lat: 26.9260,
+        lng: 75.7745
+      },
+      {
+        id: 'fm-9',
+        name: 'Devta',
+        photo: VISUAL_PRESETS.sacredTemple,
+        address: 'Devta Pujan Sthal, Rajasthan',
+        city: 'Bamanwas',
+        link: 'https://maps.app.goo.gl/4wYRcD9qDcB6JyLg8',
+        tags: ['Devta Pujan Sthal', 'Special Place'],
+        category: 'Temple',
+        phone: '',
+        featured: true,
+        lat: 26.5650,
+        lng: 76.5680
+      },
+      {
+        id: 'fm-10',
+        name: 'Central House',
+        photo: VISUAL_PRESETS.modernHouse,
+        address: 'Central House, Bamanwas',
+        city: 'Bamanwas',
+        link: 'https://maps.app.goo.gl/PyVxnRkVr7Z179Bn8',
+        tags: ['Central House', 'Home'],
+        category: 'Home',
+        phone: '',
+        featured: true,
+        lat: 26.5582,
+        lng: 76.5612
+      }
+    ];
+
+    const CITY_COORDS = {
+      jaipur: { lat: 26.9124, lng: 75.7873 },
+      dausa: { lat: 26.8932, lng: 76.3375 },
+      jaisalmer: { lat: 26.9157, lng: 70.9083 },
+      gangapur: { lat: 26.4728, lng: 76.7263 },
+      kota: { lat: 25.2138, lng: 75.8648 },
+      bamanwas: { lat: 26.5582, lng: 76.5612 },
+      jodhpur: { lat: 26.2389, lng: 73.0243 },
+      udaipur: { lat: 24.5854, lng: 73.7125 }
+    };
+
+    const ADMIN_SECRET_PASSCODE = '2002';
+    const STORAGE_KEYS = {
+      FAVORITES: 'fs26_favorites',
+      RECENT: 'fs26_recent',
+      THEME: 'fs26_theme',
+      VIEW_MODE: 'fs26_view',
+      PIN_CODE: 'fs26_pin',
+      AUTO_LOCK: 'fs26_autolock',
+      CUSTOM_FB: 'fs26_custom_firebase',
+      LOCAL_MEMBERS: 'fs26_local_members',
+      LOCAL_META: 'fs26_local_meta'
+    };
+
+    const state = {
+      members: [...DEFAULT_FAMILY_DATA],
+      favorites: [],
+      recentActivity: [],
+      noticeText: 'Welcome to FAMILY SPACE 2026! Click any avatar or house on the live digital map for instant navigation.',
+      events: [
+        { id: 'ev-1', title: 'Devta Pujan Sthal Annual Gathering', date: '2026-12-15' },
+        { id: 'ev-2', title: 'Central House Bamanwas Reunion', date: '2027-01-14' }
+      ],
+      searchQuery: '',
+      selectedCity: 'ALL',
+      selectedCategory: 'ALL',
+      sortOrder: 'DEFAULT',
+      viewMode: 'GRID',
+      adminUnlocked: false,
+      userGps: null,
+      leafletMap: null,
+      markersLayer: null,
+      routeLayer: null,
+      db: null,
+      user: null,
+      appId: 'family-space-meena-2026',
+      cloudConnected: false
+    };
+
+    /* ---------------------------------------------------------------------
+     * 2. SECURITY & SANITIZATION HELPERS
+     * --------------------------------------------------------------------- */
+    function sanitizeUrl(url) {
+      if (!url || typeof url !== 'string') return '#';
+      const trimmed = url.trim();
+      if (trimmed.startsWith('data:image/')) return trimmed;
+      try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+      } catch (e) {
+        return '#';
+      }
+      return '#';
+    }
+
+    function getFallbackPhoto(item) {
+      if (item.category === 'Temple' || item.name === 'Devta') return VISUAL_PRESETS.sacredTemple;
+      if (item.category === 'Home' || (item.tags || []).includes('Home')) return VISUAL_PRESETS.modernHouse;
+      return VISUAL_PRESETS.youngMale;
+    }
+
+    function getInitials(name) {
+      if (!name) return 'FS';
+      const cleaned = name.replace(/\b(Ji|Mr|Mrs|Ms|Dr)\b\.?/gi, '').trim();
+      const parts = cleaned.split(/\s+/).filter(Boolean);
+      if (parts.length === 0) return 'FS';
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    function inferCityFromAddress(address, tags) {
+      const known = ['Jaipur', 'Dausa', 'Jaisalmer', 'Gangapur', 'Kota', 'Bamanwas', 'Jodhpur', 'Udaipur'];
+      const text = `${address || ''} ${(tags || []).join(' ')}`.toLowerCase();
+      for (const c of known) {
+        if (text.includes(c.toLowerCase())) return c;
+      }
+      return address && address.includes(',') ? address.split(',')[0].trim() : 'Rajasthan';
+    }
+
+    function inferCoordinates(city, address) {
+      const key = `${city} ${address}`.toLowerCase();
+      for (const [k, coords] of Object.entries(CITY_COORDS)) {
+        if (key.includes(k)) {
+          return {
+            lat: coords.lat + (Math.random() - 0.5) * 0.014,
+            lng: coords.lng + (Math.random() - 0.5) * 0.014
+          };
+        }
+      }
+      return { lat: 26.5582, lng: 76.5612 };
+    }
+
+    function calculateRoadDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLon = ((lon2 - lon1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c * 1.22);
+    }
+
+    /* ---------------------------------------------------------------------
+     * 3. REAL-TIME FIREBASE FIRESTORE CLOUD SYNC (MULTI-DEVICE)
+     * --------------------------------------------------------------------- */
+    function updateSyncPill(isLive, label) {
+      const pill = document.getElementById('syncStatusPill');
+      const dot = document.getElementById('syncStatusDot');
+      const text = document.getElementById('syncStatusText');
+      text.textContent = label;
+      if (isLive) {
+        pill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/25';
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse';
+      } else {
+        pill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/25';
+        dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-500';
+      }
+    }
+
+    async function initCloudSync() {
+      state.appId = typeof __app_id !== 'undefined' ? __app_id : 'family-space-meena-2026';
+      let fbConfig = null;
+
+      try {
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+          fbConfig = JSON.parse(__firebase_config);
+        } else {
+          const customRaw = localStorage.getItem(STORAGE_KEYS.CUSTOM_FB);
+          if (customRaw) fbConfig = JSON.parse(customRaw);
+        }
+      } catch (e) {
+        fbConfig = null;
+      }
+
+      if (!fbConfig || !fbConfig.apiKey) {
+        updateSyncPill(false, 'Local Device Mode');
+        loadLocalFallbackData();
+        refreshAllUI();
+        return;
+      }
+
+      try {
+        const app = initializeApp(fbConfig);
+        const auth = getAuth(app);
+        state.db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(auth, __initial_auth_token);
+          state.user = cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          state.user = cred.user;
+        }
+
+        if (!state.user) return;
+        state.cloudConnected = true;
+        updateSyncPill(true, 'Live Cloud Synced');
+
+        // Listen to Public Family Members Collection (/artifacts/{appId}/public/data/familyMembers)
+        const membersCol = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'familyMembers');
+        onSnapshot(
+          membersCol,
+          async (snapshot) => {
+            if (snapshot.empty) {
+              // Seed initial 10 members into cloud on first boot
+              for (const item of DEFAULT_FAMILY_DATA) {
+                const ref = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'familyMembers', item.id);
+                await setDoc(ref, item);
+              }
+              return;
+            }
+            const cloudList = [];
+            snapshot.forEach((docSnap) => {
+              cloudList.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            // Keep consistent order
+            cloudList.sort((a, b) => (a.order || 0) - (b.order || 0));
+            state.members = cloudList;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_MEMBERS, JSON.stringify(cloudList));
+            refreshAllUI();
+          },
+          (err) => {
+            console.error('Firestore listener error:', err);
+            updateSyncPill(false, 'Offline Fallback');
+          }
+        );
+
+        // Listen to Live Noticeboard & Events (/artifacts/{appId}/public/data/portalMeta/main)
+        const metaDoc = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'portalMeta', 'main');
+        onSnapshot(
+          metaDoc,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (data.noticeText) state.noticeText = data.noticeText;
+              if (Array.isArray(data.events)) state.events = data.events;
+              refreshAllUI();
+            }
+          },
+          (err) => console.error('Meta listener error:', err)
+        );
+      } catch (err) {
+        console.error('Firebase init failed:', err);
+        updateSyncPill(false, 'Local Device Mode');
+        loadLocalFallbackData();
+        refreshAllUI();
+      }
+    }
+
+    function loadLocalFallbackData() {
+      try {
+        const savedMembers = localStorage.getItem(STORAGE_KEYS.LOCAL_MEMBERS);
+        if (savedMembers) {
+          const parsed = JSON.parse(savedMembers);
+          if (Array.isArray(parsed) && parsed.length > 0) state.members = parsed;
+        }
+        const savedMeta = localStorage.getItem(STORAGE_KEYS.LOCAL_META);
+        if (savedMeta) {
+          const meta = JSON.parse(savedMeta);
+          if (meta.noticeText) state.noticeText = meta.noticeText;
+          if (Array.isArray(meta.events)) state.events = meta.events;
+        }
+      } catch (e) { /* Ignore */ }
+    }
+
+    async function persistMemberToCloud(memberObj, auditActionText) {
+      // Save locally immediately for instant feedback
+      const idx = state.members.findIndex((m) => m.id === memberObj.id);
+      if (idx !== -1) state.members[idx] = memberObj;
+      else state.members.push(memberObj);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_MEMBERS, JSON.stringify(state.members));
+
+      logActivity(memberObj.name, auditActionText, memberObj.link);
+
+      if (state.cloudConnected && state.db && state.user) {
+        const docRef = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'familyMembers', memberObj.id);
+        await setDoc(docRef, memberObj);
+      } else {
+        refreshAllUI();
+      }
+    }
+
+    async function deleteMemberFromCloud(memberId, memberName) {
+      state.members = state.members.filter((m) => m.id !== memberId);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_MEMBERS, JSON.stringify(state.members));
+      logActivity(memberName, 'Removed from directory (Admin)', '#');
+
+      if (state.cloudConnected && state.db && state.user) {
+        const docRef = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'familyMembers', memberId);
+        await deleteDoc(docRef);
+      } else {
+        refreshAllUI();
+      }
+    }
+
+    async function persistMetaToCloud() {
+      const payload = { noticeText: state.noticeText, events: state.events };
+      localStorage.setItem(STORAGE_KEYS.LOCAL_META, JSON.stringify(payload));
+      logActivity('Family Noticeboard', 'Updated live announcement/event', '#');
+
+      if (state.cloudConnected && state.db && state.user) {
+        const metaRef = doc(state.db, 'artifacts', state.appId, 'public', 'data', 'portalMeta', 'main');
+        await setDoc(metaRef, payload);
+      } else {
+        refreshAllUI();
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+     * 4. IMAGE COMPRESSION FOR GALLERY UPLOADS (FITS FIRESTORE CLEANLY)
+     * --------------------------------------------------------------------- */
+    function compressImageFile(file, maxWidth = 480, quality = 0.78) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = event.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    /* ---------------------------------------------------------------------
+     * 5. TOASTS & CLIPBOARD
+     * --------------------------------------------------------------------- */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const cls =
+        type === 'success'
+          ? 'bg-emerald-600 text-white border-emerald-500'
+          : type === 'error'
+          ? 'bg-rose-600 text-white border-rose-500'
+          : 'bg-obsidian-850 text-white border-slate-700';
+      toast.className = `pointer-events-auto px-4 py-2.5 rounded-2xl border shadow-xl text-xs font-semibold transition-opacity duration-200 ${cls}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 220);
+      }, 2600);
+    }
+
+    function copyTextToClipboard(text, msg) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(msg || 'Copied!', 'success');
+      } catch (e) {
+        showToast('Could not copy.', 'error');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function logActivity(title, subtitle, link) {
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      state.recentActivity = [{ title, subtitle, link, time: timeStr }, ...state.recentActivity].slice(0, 6);
+      localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(state.recentActivity));
+      renderRecentActivity();
+    }
+
+    /* ---------------------------------------------------------------------
+     * 6. RENDER FUNCTIONS (100% XSS-SAFE DOM APIS)
+     * --------------------------------------------------------------------- */
+    function renderNoticeAndEvents() {
+      document.getElementById('liveAnnouncementText').textContent = state.noticeText;
+      const editBtn = document.getElementById('editNoticeQuickBtn');
+      if (state.adminUnlocked) editBtn.classList.remove('hidden');
+      else editBtn.classList.add('hidden');
+
+      const eventsList = document.getElementById('upcomingEventsList');
+      eventsList.replaceChildren();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      state.events.slice(0, 3).forEach((ev) => {
+        const targetDate = new Date(ev.date + 'T00:00:00');
+        const diffDays = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+        const badgeText = diffDays < 0 ? 'Completed' : diffDays === 0 ? 'Today!' : `In ${diffDays}d`;
+
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between gap-2 bg-slate-50 dark:bg-obsidian-900 px-3 py-2 rounded-xl border border-slate-200/70 dark:border-slate-800';
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'font-semibold text-slate-800 dark:text-slate-200 truncate';
+        titleSpan.textContent = ev.title;
+
+        const badge = document.createElement('span');
+        badge.className = 'shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-500/15 text-indigo-400';
+        badge.textContent = badgeText;
+
+        li.appendChild(titleSpan);
+        li.appendChild(badge);
+        eventsList.appendChild(li);
+      });
+    }
+
+    function renderStatsAndCities() {
+      const totalLocations = state.members.length;
+      const totalMembers = state.members.filter((m) => m.category === 'Member' || m.name.includes('Meena')).length;
+      const cityCounts = {};
+
+      state.members.forEach((m) => {
+        const c = m.city || inferCityFromAddress(m.address, m.tags);
+        cityCounts[c] = (cityCounts[c] || 0) + 1;
+      });
+      const cities = Object.keys(cityCounts);
+
+      document.getElementById('statMembersCount').textContent = String(totalMembers);
+      document.getElementById('statCitiesCount').textContent = String(cities.length);
+      document.getElementById('statLocationsCount').textContent = String(totalLocations);
+
+      // City Quick-Fly Bar on Map
+      const mapCityBar = document.getElementById('cityOverviewBar');
+      mapCityBar.replaceChildren();
+
+      const allFlyBtn = document.createElement('button');
+      allFlyBtn.type = 'button';
+      allFlyBtn.dataset.flyCity = 'ALL';
+      allFlyBtn.className = 'shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white cursor-pointer';
+      allFlyBtn.textContent = `All Rajasthan (${totalLocations})`;
+      mapCityBar.appendChild(allFlyBtn);
+
+      cities.forEach((city) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.flyCity = city;
+        btn.className = 'shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-indigo-500 transition cursor-pointer';
+        btn.textContent = `${city} (${cityCounts[city]})`;
+        mapCityBar.appendChild(btn);
+      });
+
+      // Directory Filter Pills
+      const pills = document.getElementById('cityFilterPills');
+      pills.replaceChildren();
+      const defs = [
+        { key: 'ALL', label: `All (${totalLocations})` },
+        { key: 'FAVORITES', label: `★ Pinned (${state.favorites.length})` },
+        ...cities.map((c) => ({ key: c, label: `${c} (${cityCounts[c]})` }))
+      ];
+      defs.forEach((p) => {
+        const active = state.selectedCity === p.key;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.cityPill = p.key;
+        b.className = `shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+          active
+            ? 'bg-indigo-600 border-indigo-600 text-white'
+            : 'bg-slate-100 dark:bg-obsidian-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-indigo-500/40'
+        }`;
+        b.textContent = p.label;
+        pills.appendChild(b);
+      });
+    }
+
+    function renderFeaturedLocations() {
+      const container = document.getElementById('featuredLocationsGrid');
+      container.replaceChildren();
+
+      const featured = state.members.filter((m) => m.featured || m.name === 'Devta' || m.name === 'Central House');
+      featured.forEach((item) => {
+        const isTemple = item.category === 'Temple' || item.name === 'Devta';
+        const photoSrc = sanitizeUrl(item.photo) !== '#' ? sanitizeUrl(item.photo) : getFallbackPhoto(item);
+
+        const card = document.createElement('div');
+        card.className = 'bento-card bg-white dark:bg-obsidian-850 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm flex flex-col';
+
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'relative h-36 bg-obsidian-900 overflow-hidden';
+        const img = document.createElement('img');
+        img.src = photoSrc;
+        img.alt = item.name;
+        img.className = 'w-full h-full object-cover';
+        img.onerror = () => { img.src = getFallbackPhoto(item); };
+
+        const badge = document.createElement('span');
+        badge.className = `absolute top-3 left-3 px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md ${
+          isTemple ? 'bg-violet-600/90 text-white' : 'bg-emerald-600/90 text-white'
+        }`;
+        badge.textContent = isTemple ? 'Sacred Devta Sthal' : 'Ancestral House';
+
+        imgWrap.appendChild(img);
+        imgWrap.appendChild(badge);
+
+        const body = document.createElement('div');
+        body.className = 'p-4 flex-1 flex flex-col justify-between gap-3';
+
+        const info = document.createElement('div');
+        const h3 = document.createElement('h3');
+        h3.className = 'text-base font-extrabold text-slate-900 dark:text-white';
+        h3.textContent = item.name;
+        const p = document.createElement('p');
+        p.className = 'text-xs text-slate-500 dark:text-slate-400 mt-0.5';
+        p.textContent = item.address;
+        info.appendChild(h3);
+        info.appendChild(p);
+
+        const footer = document.createElement('div');
+        footer.className = 'flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800';
+
+        const openA = document.createElement('a');
+        openA.href = sanitizeUrl(item.link);
+        openA.target = '_blank';
+        openA.rel = 'noopener noreferrer';
+        openA.dataset.trackOpenId = item.id;
+        openA.className = 'text-xs font-bold text-indigo-500 hover:text-indigo-400';
+        openA.textContent = 'Open Google Maps →';
+
+        const qrBtn = document.createElement('button');
+        qrBtn.type = 'button';
+        qrBtn.dataset.action = 'details';
+        qrBtn.dataset.id = item.id;
+        qrBtn.className = 'text-xs font-semibold text-slate-500 hover:text-white cursor-pointer';
+        qrBtn.textContent = 'QR & Details';
+
+        footer.appendChild(openA);
+        footer.appendChild(qrBtn);
+
+        body.appendChild(info);
+        body.appendChild(footer);
+        card.appendChild(imgWrap);
+        card.appendChild(body);
+        container.appendChild(card);
+      });
+    }
+
+    function renderRecentActivity() {
+      const list = document.getElementById('recentActivityList');
+      list.replaceChildren();
+
+      if (state.recentActivity.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'text-xs text-slate-400 py-6 text-center';
+        li.textContent = 'No recent activity yet. Open a map or edit via Admin Mode.';
+        list.appendChild(li);
+        return;
+      }
+
+      state.recentActivity.slice(0, 4).forEach((act) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between gap-2';
+
+        const left = document.createElement('div');
+        left.className = 'min-w-0';
+        const t = document.createElement('span');
+        t.className = 'font-semibold text-slate-800 dark:text-slate-200 block truncate';
+        t.textContent = act.title;
+        const s = document.createElement('span');
+        s.className = 'text-[11px] text-slate-400 block truncate';
+        s.textContent = `${act.subtitle} • ${act.time}`;
+        left.appendChild(t);
+        left.appendChild(s);
+
+        li.appendChild(left);
+        if (act.link && act.link !== '#') {
+          const a = document.createElement('a');
+          a.href = sanitizeUrl(act.link);
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.className = 'shrink-0 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-obsidian-900 text-indigo-400 font-semibold';
+          a.textContent = 'Open';
+          li.appendChild(a);
+        }
+        list.appendChild(li);
+      });
+    }
+
+    function renderDirectory() {
+      const grid = document.getElementById('directoryGrid');
+      const empty = document.getElementById('emptyDirectoryState');
+      const q = state.searchQuery.trim().toLowerCase();
+
+      let list = state.members.filter((m) => {
+        if (state.selectedCity === 'FAVORITES' && !state.favorites.includes(m.id)) return false;
+        if (state.selectedCity !== 'ALL' && state.selectedCity !== 'FAVORITES') {
+          const c = m.city || inferCityFromAddress(m.address, m.tags);
+          if (c.toLowerCase() !== state.selectedCity.toLowerCase()) return false;
+        }
+        if (state.selectedCategory !== 'ALL' && m.category !== state.selectedCategory) return false;
+        if (q) {
+          const hay = `${m.name} ${m.address} ${(m.tags || []).join(' ')}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      if (state.sortOrder === 'AZ') list.sort((a, b) => a.name.localeCompare(b.name));
+      else if (state.sortOrder === 'ZA') list.sort((a, b) => b.name.localeCompare(a.name));
+      else if (state.sortOrder === 'NEAREST' && state.userGps) {
+        list.sort((a, b) =>
+          calculateRoadDistanceKm(state.userGps.lat, state.userGps.lng, a.lat, a.lng) -
+          calculateRoadDistanceKm(state.userGps.lat, state.userGps.lng, b.lat, b.lng)
+        );
+      } else {
+        list.sort((a, b) => (state.favorites.includes(b.id) ? 1 : 0) - (state.favorites.includes(a.id) ? 1 : 0));
+      }
+
+      document.getElementById('filteredResultBadge').textContent = String(list.length);
+      grid.replaceChildren();
+
+      if (list.length === 0) {
+        grid.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      grid.className =
+        state.viewMode === 'LIST'
+          ? 'flex flex-col gap-3'
+          : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5';
+
+      list.forEach((member) => {
+        const isFav = state.favorites.includes(member.id);
+        const safeMap = sanitizeUrl(member.link);
+        const photoSrc = sanitizeUrl(member.photo) !== '#' ? sanitizeUrl(member.photo) : getFallbackPhoto(member);
+        const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(member.address)}`;
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(`FAMILY SPACE Location:\n${member.name}\n${member.address}\nMap: ${safeMap}`)}`;
+
+        const card = document.createElement('article');
+        card.className = `bento-card bg-white dark:bg-obsidian-850 border ${
+          isFav ? 'border-amber-400/60' : 'border-slate-200 dark:border-slate-800'
+        } rounded-3xl overflow-hidden shadow-sm flex ${
+          state.viewMode === 'LIST' ? 'flex-col md:flex-row md:items-center justify-between p-4 gap-4' : 'flex-col'
+        }`;
+
+        // Photo Banner (in Grid Mode) or Avatar Thumbnail (in List Mode)
+        if (state.viewMode === 'GRID') {
+          const banner = document.createElement('div');
+          banner.className = 'relative h-40 bg-obsidian-900 overflow-hidden group';
+
+          const img = document.createElement('img');
+          img.src = photoSrc;
+          img.alt = member.name;
+          img.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-500';
+          img.onerror = () => { img.src = getFallbackPhoto(member); };
+
+          // Category Pill on Image
+          const catChip = document.createElement('span');
+          catChip.className = `absolute top-3 left-3 px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md text-white ${
+            member.category === 'Temple'
+              ? 'bg-violet-600/90'
+              : member.category === 'Home'
+              ? 'bg-emerald-600/90'
+              : 'bg-indigo-600/90'
+          }`;
+          catChip.textContent = member.category === 'Home' ? 'House' : member.category;
+
+          // Pin Favorite Button on Image
+          const favBtn = document.createElement('button');
+          favBtn.type = 'button';
+          favBtn.dataset.action = 'favorite';
+          favBtn.dataset.id = member.id;
+          favBtn.ariaLabel = 'Pin Favorite';
+          favBtn.className = `absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md border transition no-print cursor-pointer ${
+            isFav ? 'bg-amber-500 text-white border-amber-400' : 'bg-black/45 text-white border-white/15 hover:bg-black/70'
+          }`;
+          const star = document.createElement('i');
+          star.setAttribute('data-lucide', 'star');
+          star.className = `w-3.5 h-3.5 ${isFav ? 'fill-white' : ''}`;
+          favBtn.appendChild(star);
+
+          // Live GPS Distance Badge if enabled
+          if (state.userGps) {
+            const distKm = calculateRoadDistanceKm(state.userGps.lat, state.userGps.lng, member.lat, member.lng);
+            const gpsBadge = document.createElement('span');
+            gpsBadge.className = 'absolute bottom-2.5 right-3 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-obsidian-950/85 text-emerald-400 border border-emerald-500/30';
+            gpsBadge.textContent = `${distKm} km away`;
+            banner.appendChild(gpsBadge);
+          }
+
+          banner.appendChild(img);
+          banner.appendChild(catChip);
+          banner.appendChild(favBtn);
+          card.appendChild(banner);
+        }
+
+        const contentWrap = document.createElement('div');
+        contentWrap.className = state.viewMode === 'LIST' ? 'flex items-center gap-3.5 min-w-0 flex-1' : 'p-5 flex-1 flex flex-col justify-between gap-4';
+
+        if (state.viewMode === 'LIST') {
+          const thumb = document.createElement('img');
+          thumb.src = photoSrc;
+          thumb.alt = member.name;
+          thumb.className = 'w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-700';
+          contentWrap.appendChild(thumb);
+        }
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'min-w-0 flex-1';
+
+        const h3 = document.createElement('h3');
+        h3.className = 'text-base font-extrabold text-slate-900 dark:text-white truncate';
+        h3.textContent = member.name;
+
+        const addr = document.createElement('p');
+        addr.className = 'text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1 truncate';
+        const pin = document.createElement('i');
+        pin.setAttribute('data-lucide', 'map-pin');
+        pin.className = 'w-3.5 h-3.5 text-indigo-500 shrink-0';
+        const addrSpan = document.createElement('span');
+        addrSpan.className = 'truncate';
+        addrSpan.textContent = member.address;
+        addr.appendChild(pin);
+        addr.appendChild(addrSpan);
+
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'flex flex-wrap gap-1.5 mt-2.5';
+        (member.tags || []).forEach((tag) => {
+          const tSpan = document.createElement('span');
+          tSpan.className = 'px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-obsidian-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800';
+          tSpan.textContent = tag;
+          tagsDiv.appendChild(tSpan);
+        });
+
+        infoDiv.appendChild(h3);
+        infoDiv.appendChild(addr);
+        infoDiv.appendChild(tagsDiv);
+        contentWrap.appendChild(infoDiv);
+
+        // Action Bar
+        const actions = document.createElement('div');
+        actions.className = `flex flex-wrap items-center gap-1.5 no-print ${
+          state.viewMode === 'GRID' ? 'pt-3 border-t border-slate-100 dark:border-slate-800' : 'shrink-0'
+        }`;
+
+        const openMapA = document.createElement('a');
+        openMapA.href = safeMap;
+        openMapA.target = '_blank';
+        openMapA.rel = 'noopener noreferrer';
+        openMapA.dataset.trackOpenId = member.id;
+        openMapA.className = 'flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition';
+        openMapA.textContent = 'Open Map';
+
+        const dirA = document.createElement('a');
+        dirA.href = dirUrl;
+        dirA.target = '_blank';
+        dirA.rel = 'noopener noreferrer';
+        dirA.title = 'Get Directions';
+        dirA.className = 'p-2 rounded-xl bg-slate-100 dark:bg-obsidian-900 hover:bg-slate-200 dark:hover:bg-obsidian-800 text-violet-400 border border-slate-200 dark:border-slate-700';
+        const dirI = document.createElement('i');
+        dirI.setAttribute('data-lucide', 'navigation');
+        dirI.className = 'w-3.5 h-3.5';
+        dirA.appendChild(dirI);
+
+        const waA = document.createElement('a');
+        waA.href = waUrl;
+        waA.target = '_blank';
+        waA.rel = 'noopener noreferrer';
+        waA.title = 'Share on WhatsApp';
+        waA.className = 'p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/25';
+        const waI = document.createElement('i');
+        waI.setAttribute('data-lucide', 'share-2');
+        waI.className = 'w-3.5 h-3.5';
+        waA.appendChild(waI);
+
+        const qrBtn = document.createElement('button');
+        qrBtn.type = 'button';
+        qrBtn.dataset.action = 'details';
+        qrBtn.dataset.id = member.id;
+        qrBtn.title = 'QR Code & Details';
+        qrBtn.className = 'p-2 rounded-xl bg-slate-100 dark:bg-obsidian-900 hover:bg-slate-200 dark:hover:bg-obsidian-800 text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer';
+        const qrI = document.createElement('i');
+        qrI.setAttribute('data-lucide', 'qr-code');
+        qrI.className = 'w-3.5 h-3.5';
+        qrBtn.appendChild(qrI);
+
+        actions.appendChild(openMapA);
+        actions.appendChild(dirA);
+        actions.appendChild(waA);
+        actions.appendChild(qrBtn);
+
+        if (state.adminUnlocked) {
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.dataset.action = 'edit';
+          editBtn.dataset.id = member.id;
+          editBtn.title = 'Edit Member / Photo';
+          editBtn.className = 'p-2 rounded-xl bg-violet-500/15 text-violet-400 border border-violet-500/30 cursor-pointer';
+          const editI = document.createElement('i');
+          editI.setAttribute('data-lucide', 'pencil');
+          editI.className = 'w-3.5 h-3.5';
+          editBtn.appendChild(editI);
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.dataset.action = 'delete';
+          delBtn.dataset.id = member.id;
+          delBtn.title = 'Delete Entry';
+          delBtn.className = 'p-2 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 cursor-pointer';
+          const delI = document.createElement('i');
+          delI.setAttribute('data-lucide', 'trash-2');
+          delI.className = 'w-3.5 h-3.5';
+          delBtn.appendChild(delI);
+
+          actions.appendChild(editBtn);
+          actions.appendChild(delBtn);
+        }
+
+        if (state.viewMode === 'GRID') {
+          contentWrap.appendChild(actions);
+          card.appendChild(contentWrap);
+        } else {
+          card.appendChild(contentWrap);
+          card.appendChild(actions);
+        }
+
+        grid.appendChild(card);
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    /* ---------------------------------------------------------------------
+     * 7. EMBEDDED DIGITAL LEAFLET MAP WITH AVATAR MARKERS
+     * --------------------------------------------------------------------- */
+    let tileLayer = null;
+
+    function syncMapTheme() {
+      if (!state.leafletMap || !window.L) return;
+      const isDark = document.documentElement.classList.contains('dark');
+      const url = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      if (tileLayer) state.leafletMap.removeLayer(tileLayer);
+      tileLayer = L.tileLayer(url, { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18 }).addTo(state.leafletMap);
+    }
+
+    function renderDigitalMap() {
+      if (!window.L) return;
+      if (!state.leafletMap) {
+        state.leafletMap = L.map('familyLeafletMap', { center: [26.6, 74.8], zoom: 6, scrollWheelZoom: false });
+        syncMapTheme();
+        state.markersLayer = L.layerGroup().addTo(state.leafletMap);
+      }
+
+      state.markersLayer.clearLayers();
+      const bounds = [];
+
+      state.members.forEach((m) => {
+        const lat = typeof m.lat === 'number' ? m.lat : 26.5582;
+        const lng = typeof m.lng === 'number' ? m.lng : 76.5612;
+        bounds.push([lat, lng]);
+
+        const bg = m.category === 'Temple' ? '#7c3aed' : m.category === 'Home' ? '#059669' : '#4f46e5';
+        const photoUrl = sanitizeUrl(m.photo) !== '#' ? sanitizeUrl(m.photo) : getFallbackPhoto(m);
+
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="map-avatar-pin" style="background-color:${bg};background-image:url('${photoUrl.replace(/'/g, '')}');"></div>`,
+          iconSize: [38, 38],
+          iconAnchor: [19, 19]
+        });
+
+        // Safe DOM popup
+        const pop = document.createElement('div');
+        pop.style.width = '195px';
+
+        const pImg = document.createElement('img');
+        pImg.src = photoUrl;
+        pImg.style.width = '100%';
+        pImg.style.height = '84px';
+        pImg.style.objectFit = 'cover';
+        pImg.style.borderRadius = '8px';
+        pImg.style.marginBottom = '6px';
+
+        const pTitle = document.createElement('strong');
+        pTitle.style.display = 'block';
+        pTitle.style.fontSize = '13px';
+        pTitle.style.color = '#0f172a';
+        pTitle.textContent = m.name;
+
+        const pAddr = document.createElement('span');
+        pAddr.style.display = 'block';
+        pAddr.style.fontSize = '11px';
+        pAddr.style.color = '#475569';
+        pAddr.textContent = m.address;
+
+        const pBtn = document.createElement('a');
+        pBtn.href = sanitizeUrl(m.link);
+        pBtn.target = '_blank';
+        pBtn.rel = 'noopener noreferrer';
+        pBtn.style.display = 'block';
+        pBtn.style.textAlign = 'center';
+        pBtn.style.marginTop = '8px';
+        pBtn.style.padding = '5px 8px';
+        pBtn.style.borderRadius = '8px';
+        pBtn.style.background = '#4f46e5';
+        pBtn.style.color = '#ffffff';
+        pBtn.style.fontSize = '11px';
+        pBtn.style.fontWeight = '700';
+        pBtn.style.textDecoration = 'none';
+        pBtn.textContent = 'Navigate in Google Maps →';
+
+        pop.appendChild(pImg);
+        pop.appendChild(pTitle);
+        pop.appendChild(pAddr);
+        pop.appendChild(pBtn);
+
+        L.marker([lat, lng], { icon }).bindPopup(pop).addTo(state.markersLayer);
+      });
+
+      if (bounds.length > 0 && !state.routeLayer) {
+        state.leafletMap.fitBounds(bounds, { padding: [38, 38] });
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+     * 8. MODALS: DETAILS + QR GENERATOR + ADMIN ADD/EDIT
+     * --------------------------------------------------------------------- */
+    function openDetailsModal(memberId) {
+      const m = state.members.find((item) => item.id === memberId) || state.members[0];
+      if (!m) return;
+
+      const safeMap = sanitizeUrl(m.link);
+      const photoUrl = sanitizeUrl(m.photo) !== '#' ? sanitizeUrl(m.photo) : getFallbackPhoto(m);
+
+      document.getElementById('detailCoverPhoto').src = photoUrl;
+      document.getElementById('detailModalName').textContent = m.name;
+      document.getElementById('detailModalAddress').querySelector('span').textContent = m.address;
+      document.getElementById('qrMemberLabel').textContent = m.name;
+
+      document.getElementById('detailOpenMapLink').href = safeMap;
+      document.getElementById('detailDirectionsLink').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(m.address)}`;
+      document.getElementById('detailWhatsappLink').href = `https://wa.me/?text=${encodeURIComponent(`FAMILY SPACE:\n${m.name}\n${m.address}\n${safeMap}`)}`;
+
+      const callLink = document.getElementById('detailCallLink');
+      if (m.phone) {
+        callLink.href = `tel:${m.phone.replace(/\s+/g, '')}`;
+        callLink.classList.remove('opacity-40', 'pointer-events-none');
+      } else {
+        callLink.href = '#';
+        callLink.classList.add('opacity-40', 'pointer-events-none');
+      }
+
+      // Generate QR Code
+      const qrBox = document.getElementById('detailQrContainer');
+      qrBox.replaceChildren();
+      if (window.QRCode && safeMap !== '#') {
+        new QRCode(qrBox, { text: safeMap, width: 96, height: 96, colorDark: '#050811', colorLight: '#ffffff' });
+      }
+
+      document.getElementById('detailCopyLinkBtn').onclick = () => copyTextToClipboard(safeMap, 'Google Maps link copied!');
+
+      // Distance selectors
+      const fSel = document.getElementById('distanceFromSelect');
+      const tSel = document.getElementById('distanceToSelect');
+      fSel.replaceChildren();
+      tSel.replaceChildren();
+      state.members.forEach((item) => {
+        const o1 = new Option(`${item.name} (${item.city})`, item.id);
+        const o2 = new Option(`${item.name} (${item.city})`, item.id);
+        fSel.add(o1);
+        tSel.add(o2);
+      });
+      fSel.value = m.id;
+      const other = state.members.find((x) => x.id !== m.id && x.city !== m.city) || state.members[0];
+      if (other) tSel.value = other.id;
+      updateModalDistance();
+
+      document.getElementById('profileDetailsModal').classList.remove('hidden');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function updateModalDistance() {
+      const a = state.members.find((m) => m.id === document.getElementById('distanceFromSelect').value);
+      const b = state.members.find((m) => m.id === document.getElementById('distanceToSelect').value);
+      if (!a || !b) return;
+      if (a.id === b.id) {
+        document.getElementById('distanceKmValue').textContent = '0 km';
+        document.getElementById('distanceTimeValue').textContent = 'Same place';
+        return;
+      }
+      const km = calculateRoadDistanceKm(a.lat, a.lng, b.lat, b.lng);
+      const mins = Math.round((km / 52) * 60);
+      const h = Math.floor(mins / 60);
+      const rem = mins % 60;
+      document.getElementById('distanceKmValue').textContent = `~${km} km`;
+      document.getElementById('distanceTimeValue').textContent = h > 0 ? `${h} hr ${rem} min` : `${rem} min`;
+    }
+
+    function openMemberEditor(memberId = null) {
+      const form = document.getElementById('memberEditForm');
+      form.reset();
+      const preview = document.getElementById('photoPreviewImg');
+
+      if (memberId) {
+        const m = state.members.find((item) => item.id === memberId);
+        if (!m) return;
+        document.getElementById('memberFormTitle').textContent = 'Edit Member / House Photo & Details';
+        document.getElementById('editMemberId').value = m.id;
+        document.getElementById('memberNameInput').value = m.name;
+        document.getElementById('memberAddressInput').value = m.address;
+        document.getElementById('memberCategoryInput').value = m.category || 'Member';
+        document.getElementById('memberLinkInput').value = m.link;
+        document.getElementById('memberPhoneInput').value = m.phone || '';
+        document.getElementById('memberTagsInput').value = (m.tags || []).join(', ');
+        document.getElementById('memberPhotoInput').value = m.photo || '';
+        preview.src = sanitizeUrl(m.photo) !== '#' ? sanitizeUrl(m.photo) : getFallbackPhoto(m);
+      } else {
+        document.getElementById('memberFormTitle').textContent = 'Add New Family Member / House';
+        document.getElementById('editMemberId').value = '';
+        preview.src = VISUAL_PRESETS.modernHouse;
+      }
+
+      document.getElementById('memberFormModal').classList.remove('hidden');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    /* ---------------------------------------------------------------------
+     * 9. REFRESH ALL UI & BIND EVENTS
+     * --------------------------------------------------------------------- */
+    function refreshAllUI() {
+      renderNoticeAndEvents();
+      renderStatsAndCities();
+      renderFeaturedLocations();
+      renderRecentActivity();
+      renderDirectory();
+      renderDigitalMap();
+      updateAdminToolbarUI();
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function updateAdminToolbarUI() {
+      const bar = document.getElementById('adminToolbar');
+      const label = document.getElementById('adminBtnLabel');
+      const btn = document.getElementById('toggleAdminBtn');
+      if (state.adminUnlocked) {
+        bar.classList.remove('hidden');
+        label.textContent = 'Admin ON';
+        btn.classList.add('border-violet-500', 'bg-violet-500/15', 'text-violet-400');
+      } else {
+        bar.classList.add('hidden');
+        label.textContent = 'Admin';
+        btn.classList.remove('border-violet-500', 'bg-violet-500/15', 'text-violet-400');
+      }
+    }
+
+    function bindEvents() {
+      // Theme Switch
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        const next = isDark ? 'light' : 'dark';
+        document.documentElement.classList.toggle('dark', next === 'dark');
+        localStorage.setItem(STORAGE_KEYS.THEME, next);
+        syncMapTheme();
+      });
+
+      // Admin Secret Passcode Gate (Code: 2002)
+      document.getElementById('toggleAdminBtn').addEventListener('click', () => {
+        if (state.adminUnlocked) {
+          state.adminUnlocked = false;
+          refreshAllUI();
+          showToast('Exited Admin Mode.');
+        } else {
+          document.getElementById('adminCodeError').classList.add('hidden');
+          document.getElementById('adminCodeInput').value = '';
+          document.getElementById('adminPasscodeModal').classList.remove('hidden');
+          setTimeout(() => document.getElementById('adminCodeInput').focus(), 50);
+        }
+      });
+
+      document.getElementById('closeAdminGateBtn').addEventListener('click', () => {
+        document.getElementById('adminPasscodeModal').classList.add('hidden');
+      });
+
+      document.getElementById('adminPasscodeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = document.getElementById('adminCodeInput').value.trim();
+        if (code === ADMIN_SECRET_PASSCODE) {
+          state.adminUnlocked = true;
+          document.getElementById('adminPasscodeModal').classList.add('hidden');
+          refreshAllUI();
+          showToast('Admin Control Center Unlocked! All changes sync live.', 'success');
+        } else {
+          document.getElementById('adminCodeError').classList.remove('hidden');
+          document.getElementById('adminCodeInput').value = '';
+          document.getElementById('adminCodeInput').focus();
+        }
+      });
+
+      document.getElementById('lockAdminBtn').addEventListener('click', () => {
+        state.adminUnlocked = false;
+        refreshAllUI();
+        showToast('Admin Panel locked.');
+      });
+
+      // Near Me GPS Proximity Finder (New Feature #4)
+      document.getElementById('nearbyGpsBtn').addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          showToast('GPS Geolocation not supported on this browser.', 'error');
+          return;
+        }
+        showToast('Detecting your live GPS location...');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            state.userGps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            state.sortOrder = 'NEAREST';
+            document.getElementById('sortOrderSelect').value = 'NEAREST';
+            renderDirectory();
+            showToast('Sorted family houses & members by nearest distance!', 'success');
+          },
+          () => showToast('Location permission denied. Enable GPS to sort by distance.', 'error')
+        );
+      });
+
+      // Trip Route Planner (New Feature #5)
+      document.getElementById('quickTripPlannerBtn').addEventListener('click', () => {
+        const drawer = document.getElementById('tripPlannerDrawer');
+        drawer.classList.toggle('hidden');
+        if (!drawer.classList.contains('hidden')) {
+          const s1 = document.getElementById('tripStartSelect');
+          const s2 = document.getElementById('tripEndSelect');
+          s1.replaceChildren();
+          s2.replaceChildren();
+          state.members.forEach((m) => {
+            s1.add(new Option(`${m.name} (${m.city})`, m.id));
+            s2.add(new Option(`${m.name} (${m.city})`, m.id));
+          });
+          if (state.members.length > 1) s2.selectedIndex = state.members.length - 1;
+          drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+
+      document.getElementById('closeTripPlannerBtn').addEventListener('click', () => {
+        document.getElementById('tripPlannerDrawer').classList.add('hidden');
+      });
+
+      document.getElementById('drawRouteBtn').addEventListener('click', () => {
+        const m1 = state.members.find((m) => m.id === document.getElementById('tripStartSelect').value);
+        const m2 = state.members.find((m) => m.id === document.getElementById('tripEndSelect').value);
+        if (!m1 || !m2 || !state.leafletMap) return;
+
+        if (state.routeLayer) state.leafletMap.removeLayer(state.routeLayer);
+        const latlngs = [[m1.lat, m1.lng], [m2.lat, m2.lng]];
+        state.routeLayer = L.polyline(latlngs, { color: '#8b5cf6', weight: 4, dashArray: '8, 8' }).addTo(state.leafletMap);
+        state.leafletMap.fitBounds(state.routeLayer.getBounds(), { padding: [50, 50] });
+
+        const km = calculateRoadDistanceKm(m1.lat, m1.lng, m2.lat, m2.lng);
+        const banner = document.getElementById('tripSummaryBanner');
+        banner.classList.remove('hidden');
+        banner.textContent = `Route: ${m1.name} → ${m2.name} • Approx. ${km} km (~${Math.max(1, Math.round(km / 52))} hrs drive)`;
+      });
+
+      document.getElementById('clearRouteBtn').addEventListener('click', () => {
+        if (state.routeLayer && state.leafletMap) {
+          state.leafletMap.removeLayer(state.routeLayer);
+          state.routeLayer = null;
+        }
+        document.getElementById('tripSummaryBanner').classList.add('hidden');
+        renderDigitalMap();
+      });
+
+      // Map City Quick-Fly & Reset
+      document.getElementById('cityOverviewBar').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-fly-city]');
+        if (!btn || !state.leafletMap) return;
+        const city = btn.dataset.flyCity;
+        if (city === 'ALL') {
+          renderDigitalMap();
+          return;
+        }
+        const match = state.members.find((m) => (m.city || '').toLowerCase() === city.toLowerCase());
+        if (match) state.leafletMap.flyTo([match.lat, match.lng], 12, { duration: 1.1 });
+      });
+
+      document.getElementById('fitAllMarkersBtn').addEventListener('click', () => {
+        if (state.routeLayer && state.leafletMap) {
+          state.leafletMap.removeLayer(state.routeLayer);
+          state.routeLayer = null;
+        }
+        renderDigitalMap();
+      });
+
+      // Quick Focus Search & Share Portal
+      document.getElementById('quickFocusSearchBtn').addEventListener('click', () => {
+        const inp = document.getElementById('directorySearchInput');
+        inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        inp.focus();
+      });
+      document.getElementById('quickCopyPortalBtn').addEventListener('click', () => {
+        copyTextToClipboard(window.location.href, 'Family Portal link copied!');
+      });
+
+      // Directory Search, Category, Sort, View Mode
+      document.getElementById('directorySearchInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderDirectory();
+      });
+      document.getElementById('categoryFilterSelect').addEventListener('change', (e) => {
+        state.selectedCategory = e.target.value;
+        renderDirectory();
+      });
+      document.getElementById('sortOrderSelect').addEventListener('change', (e) => {
+        state.sortOrder = e.target.value;
+        renderDirectory();
+      });
+      document.getElementById('viewGridBtn').addEventListener('click', () => {
+        state.viewMode = 'GRID';
+        localStorage.setItem(STORAGE_KEYS.VIEW_MODE, 'GRID');
+        document.getElementById('viewGridBtn').classList.add('bg-white', 'dark:bg-obsidian-850', 'text-indigo-500', 'shadow-sm');
+        document.getElementById('viewListBtn').classList.remove('bg-white', 'dark:bg-obsidian-850', 'text-indigo-500', 'shadow-sm');
+        renderDirectory();
+      });
+      document.getElementById('viewListBtn').addEventListener('click', () => {
+        state.viewMode = 'LIST';
+        localStorage.setItem(STORAGE_KEYS.VIEW_MODE, 'LIST');
+        document.getElementById('viewListBtn').classList.add('bg-white', 'dark:bg-obsidian-850', 'text-indigo-500', 'shadow-sm');
+        document.getElementById('viewGridBtn').classList.remove('bg-white', 'dark:bg-obsidian-850', 'text-indigo-500', 'shadow-sm');
+        renderDirectory();
+      });
+
+      document.getElementById('cityFilterPills').addEventListener('click', (e) => {
+        const pill = e.target.closest('[data-city-pill]');
+        if (!pill) return;
+        state.selectedCity = pill.dataset.cityPill;
+        refreshAllUI();
+      });
+
+      document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+        state.searchQuery = '';
+        state.selectedCity = 'ALL';
+        state.selectedCategory = 'ALL';
+        document.getElementById('directorySearchInput').value = '';
+        document.getElementById('categoryFilterSelect').value = 'ALL';
+        refreshAllUI();
+      });
+
+      // Delegated Card Actions (Favorite, Details/QR, Edit, Delete, Track Open)
+      document.body.addEventListener('click', async (e) => {
+        const openLink = e.target.closest('[data-track-open-id]');
+        if (openLink) {
+          const m = state.members.find((x) => x.id === openLink.dataset.trackOpenId);
+          if (m) logActivity(m.name, 'Opened Google Maps', m.link);
+          return;
+        }
+
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const { action, id } = btn.dataset;
+
+        if (action === 'favorite') {
+          if (state.favorites.includes(id)) {
+            state.favorites = state.favorites.filter((x) => x !== id);
+            showToast('Unpinned from top.');
+          } else {
+            state.favorites.push(id);
+            showToast('Pinned to top!', 'success');
+          }
+          localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(state.favorites));
+          refreshAllUI();
+        } else if (action === 'details') {
+          openDetailsModal(id);
+        } else if (action === 'edit') {
+          openMemberEditor(id);
+        } else if (action === 'delete') {
+          const target = state.members.find((m) => m.id === id);
+          if (target) {
+            await deleteMemberFromCloud(id, target.name);
+            showToast(`Removed "${target.name}" live for all users.`);
+          }
+        }
+      });
+
+      // Details Modal Controls
+      document.getElementById('closeDetailModalBtn').addEventListener('click', () => {
+        document.getElementById('profileDetailsModal').classList.add('hidden');
+      });
+      document.getElementById('distanceFromSelect').addEventListener('change', updateModalDistance);
+      document.getElementById('distanceToSelect').addEventListener('change', updateModalDistance);
+
+      // Admin Add / Edit Member & Photo Uploader
+      document.getElementById('openAddMemberModalBtn').addEventListener('click', () => openMemberEditor(null));
+      document.getElementById('closeMemberFormBtn').addEventListener('click', () => document.getElementById('memberFormModal').classList.add('hidden'));
+      document.getElementById('cancelMemberFormBtn').addEventListener('click', () => document.getElementById('memberFormModal').classList.add('hidden'));
+
+      document.getElementById('memberPhotoFileInput').addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const compressedDataUrl = await compressImageFile(file);
+          document.getElementById('memberPhotoInput').value = compressedDataUrl;
+          document.getElementById('photoPreviewImg').src = compressedDataUrl;
+          showToast('Photo uploaded & optimized!', 'success');
+        } catch (err) {
+          showToast('Could not process image file.', 'error');
+        }
+      });
+
+      document.getElementById('memberPhotoInput').addEventListener('input', (e) => {
+        const val = sanitizeUrl(e.target.value);
+        if (val !== '#') document.getElementById('photoPreviewImg').src = val;
+      });
+
+      document.getElementById('clearPhotoBtn').addEventListener('click', () => {
+        document.getElementById('memberPhotoInput').value = '';
+        document.getElementById('photoPreviewImg').src = VISUAL_PRESETS.modernHouse;
+      });
+
+      document.getElementById('memberEditForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('editMemberId').value;
+        const name = document.getElementById('memberNameInput').value.trim();
+        const address = document.getElementById('memberAddressInput').value.trim();
+        const category = document.getElementById('memberCategoryInput').value;
+        const link = sanitizeUrl(document.getElementById('memberLinkInput').value.trim());
+        const phone = document.getElementById('memberPhoneInput').value.trim();
+        const photoRaw = document.getElementById('memberPhotoInput').value.trim();
+        const photo = sanitizeUrl(photoRaw) !== '#' ? sanitizeUrl(photoRaw) : '';
+        const tags = document
+          .getElementById('memberTagsInput')
+          .value.split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+
+        if (!name || !address || link === '#') {
+          showToast('Please enter valid Name, Address & Google Maps URL.', 'error');
+          return;
+        }
+
+        const city = inferCityFromAddress(address, tags);
+        if (tags.length === 0) tags.push(city);
+
+        const existing = editId ? state.members.find((m) => m.id === editId) : null;
+        const coords = existing ? { lat: existing.lat, lng: existing.lng } : inferCoordinates(city, address);
+
+        const memberObj = {
+          id: editId || 'fm-' + Date.now(),
+          name,
+          address,
+          city,
+          category,
+          link,
+          phone,
+          photo,
+          tags,
+          featured: existing ? Boolean(existing.featured) : false,
+          order: existing ? existing.order || 0 : state.members.length + 1,
+          lat: coords.lat,
+          lng: coords.lng
+        };
+
+        await persistMemberToCloud(memberObj, editId ? 'Updated profile/photo (Admin)' : 'Added to directory (Admin)');
+        document.getElementById('memberFormModal').classList.add('hidden');
+        showToast(`Saved "${name}" & synced live across all devices!`, 'success');
+      });
+
+      // Live Noticeboard & Event Editor
+      const openNotice = () => {
+        document.getElementById('noticeTextInput').value = state.noticeText;
+        document.getElementById('noticeModal').classList.remove('hidden');
+      };
+      document.getElementById('openNoticeModalBtn').addEventListener('click', openNotice);
+      document.getElementById('editNoticeQuickBtn').addEventListener('click', openNotice);
+      document.getElementById('closeNoticeModalBtn').addEventListener('click', () => document.getElementById('noticeModal').classList.add('hidden'));
+
+      document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        state.noticeText = document.getElementById('noticeTextInput').value.trim();
+        const evTitle = document.getElementById('eventTitleInput').value.trim();
+        const evDate = document.getElementById('eventDateInput').value;
+        if (evTitle && evDate) {
+          state.events.unshift({ id: 'ev-' + Date.now(), title: evTitle, date: evDate });
+        }
+        await persistMetaToCloud();
+        document.getElementById('noticeModal').classList.add('hidden');
+        showToast('Published live notice to all family devices!', 'success');
+      });
+
+      // Live Sync Cloud Config Modal
+      document.getElementById('openCloudConfigBtn').addEventListener('click', () => {
+        document.getElementById('firebaseConfigTextarea').value = localStorage.getItem(STORAGE_KEYS.CUSTOM_FB) || '';
+        document.getElementById('cloudConfigModal').classList.remove('hidden');
+      });
+      document.getElementById('closeCloudConfigBtn').addEventListener('click', () => document.getElementById('cloudConfigModal').classList.add('hidden'));
+
+      document.getElementById('firebaseConfigForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const raw = document.getElementById('firebaseConfigTextarea').value.trim();
+        if (!raw) {
+          localStorage.removeItem(STORAGE_KEYS.CUSTOM_FB);
+          showToast('Cleared custom config.');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed.apiKey || !parsed.projectId) throw new Error('Invalid');
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_FB, JSON.stringify(parsed));
+          document.getElementById('cloudConfigModal').classList.add('hidden');
+          showToast('Connecting to your Firebase Cloud...', 'success');
+          await initCloudSync();
+        } catch (err) {
+          showToast('Please paste valid Firebase Config JSON.', 'error');
+        }
+      });
+
+      document.getElementById('resetDefaultDataBtn').addEventListener('click', async () => {
+        for (const item of DEFAULT_FAMILY_DATA) {
+          await persistMemberToCloud(item, 'Restored default record');
+        }
+        document.getElementById('cloudConfigModal').classList.add('hidden');
+        showToast('Restored all 10 default members & houses!', 'success');
+      });
+
+      // Export & Print
+      document.getElementById('exportJsonBtn').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(state.members, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'family-space-2026.json';
+        a.click();
+      });
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const rows = [['Name', 'Address', 'City', 'Category', 'Link'], ...state.members.map((m) => [m.name, m.address, m.city, m.category, m.link])];
+        const csv = rows.map((r) => r.map((v) => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'family-space-2026.csv';
+        a.click();
+      });
+      document.getElementById('printDirectoryBtn').addEventListener('click', () => window.print());
+      document.getElementById('clearRecentBtn').addEventListener('click', () => {
+        state.recentActivity = [];
+        localStorage.setItem(STORAGE_KEYS.RECENT, '[]');
+        renderRecentActivity();
+      });
+
+      // Privacy PIN Lock
+      document.getElementById('openLockSettingsBtn').addEventListener('click', () => document.getElementById('pinSettingsModal').classList.remove('hidden'));
+      document.getElementById('closePinSettingsBtn').addEventListener('click', () => document.getElementById('pinSettingsModal').classList.add('hidden'));
+      document.getElementById('lockNowBtn').addEventListener('click', () => {
+        document.getElementById('pinSettingsModal').classList.add('hidden');
+        document.getElementById('privacyLockOverlay').classList.remove('hidden');
+      });
+      document.getElementById('saveNewPinBtn').addEventListener('click', () => {
+        const p = document.getElementById('newPinInput').value.trim();
+        if (!/^\d{4}$/.test(p)) return showToast('Enter 4 digits.', 'error');
+        localStorage.setItem(STORAGE_KEYS.PIN_CODE, p);
+        document.getElementById('pinHintDisplay').querySelector('span').textContent = p;
+        showToast('Privacy PIN updated!', 'success');
+      });
+      document.getElementById('toggleAutoLockBtn').addEventListener('click', (e) => {
+        const next = localStorage.getItem(STORAGE_KEYS.AUTO_LOCK) !== 'true';
+        localStorage.setItem(STORAGE_KEYS.AUTO_LOCK, String(next));
+        e.target.textContent = `Auto-Lock: ${next ? 'ON' : 'OFF'}`;
+      });
+      document.getElementById('unlockForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const entered = document.getElementById('pinInput').value.trim();
+        const expected = localStorage.getItem(STORAGE_KEYS.PIN_CODE) || '1234';
+        if (entered === expected) {
+          document.getElementById('privacyLockOverlay').classList.add('hidden');
+          document.getElementById('pinErrorMsg').classList.add('hidden');
+        } else {
+          document.getElementById('pinErrorMsg').classList.remove('hidden');
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          ['profileDetailsModal', 'memberFormModal', 'noticeModal', 'cloudConfigModal', 'pinSettingsModal', 'adminPasscodeModal'].forEach((id) =>
+            document.getElementById(id).classList.add('hidden')
+          );
+        }
+      });
+    }
+
+    /* ---------------------------------------------------------------------
+     * 10. INITIALIZE PORTAL
+     * --------------------------------------------------------------------- */
+    window.addEventListener('DOMContentLoaded', async () => {
+      state.favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES) || '[]');
+      state.recentActivity = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECENT) || '[]');
+      state.viewMode = localStorage.getItem(STORAGE_KEYS.VIEW_MODE) || 'GRID';
+
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+
+      const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE) || '1234';
+      document.getElementById('pinHintDisplay').querySelector('span').textContent = savedPin;
+      if (localStorage.getItem(STORAGE_KEYS.AUTO_LOCK) === 'true') {
+        document.getElementById('privacyLockOverlay').classList.remove('hidden');
+      }
+
+      bindEvents();
+      refreshAllUI();
+      await initCloudSync();
+    });
+  </script>
+</body>
+</html>
