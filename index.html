@@ -431,9 +431,9 @@
                 attributionControl: false
             }).setView([26.55, 75.8], 7);
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_593t_1_5d64bfbb1e241f771c59fda8, {
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '© CARTO'
+                attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
             markersLayer = L.layerGroup().addTo(map);
