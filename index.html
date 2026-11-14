@@ -271,7 +271,7 @@
                 </button>
             </div>
             <p class="text-xs text-slate-300 mb-5 leading-relaxed">
-                Enter the 4-digit admin passcode to unlock editing, member additions & cloud controls.
+                Enter the 4-digit admin passcode (<span class="font-mono text-blue-400 font-bold">2002</span>) to unlock editing & member additions.
             </p>
             <div class="space-y-4">
                 <div>
@@ -282,9 +282,6 @@
                 <div class="flex gap-3">
                     <button onclick="verifyAdminPin()" class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-xs shadow-lg shadow-blue-600/25 transition">
                         Unlock Admin
-                    </button>
-                    <button onclick="openCloudConfigModal()" class="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 font-semibold text-xs border border-white/10 transition" title="Firebase Config">
-                        <i class="fa-solid fa-cloud"></i>
                     </button>
                 </div>
             </div>
@@ -385,25 +382,36 @@
 
         function initFirebase() {
             try {
-                const savedConfig = localStorage.getItem('family_space_fb_config');
-                if (savedConfig) {
-                    const cfg = JSON.parse(savedConfig);
-                    firebase.initializeApp(cfg);
-                    db = firebase.firestore();
-                    updateCloudStatus(true);
+                // Hardcoded Firebase Config for automatic multi-device cloud sync
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBjExGHJ5R6Hs7uJ9KgF13D_1elk15Nd0",
+                    authDomain: "family-space-portal.firebaseapp.com",
+                    projectId: "family-space-portal",
+                    storageBucket: "family-space-portal.appspot.com",
+                    messagingSenderId: "739307717779",
+                    appId: "1:739307717779:web:c873eaa7e19f7839a53966"
+                };
 
-                    db.collection("family_space").doc("data").onSnapshot((doc) => {
-                        if (doc.exists) {
-                            const cloudData = doc.data();
-                            if (cloudData.members) familyData = cloudData.members;
-                            if (cloudData.notice) document.getElementById('notice-display-text').innerText = cloudData.notice;
-                            renderAll();
-                            plotMapMarkers();
-                        }
-                    });
-                } else {
-                    updateCloudStatus(false);
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
                 }
+                db = firebase.firestore();
+                updateCloudStatus(true);
+
+                // Real-time listener across all devices
+                db.collection("family_space").doc("data").onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const cloudData = doc.data();
+                        if (cloudData.members) familyData = cloudData.members;
+                        if (cloudData.notice) {
+                            document.getElementById('notice-display-text').innerText = cloudData.notice;
+                        }
+                        renderAll();
+                        plotMapMarkers();
+                    } else {
+                        syncToCloud();
+                    }
+                });
             } catch (e) {
                 console.log("Firebase error:", e);
                 updateCloudStatus(false);
@@ -628,28 +636,7 @@
                 document.getElementById('admin-pin-input').value = "";
                 renderDirectory();
             } else {
-                alert("Incorrect PIN");
-            }
-        }
-
-        function openCloudConfigModal() {
-            const configJson = prompt("Paste your Firebase Web Config JSON:", `{
-  "apiKey": "AIzaSyBjExGHJ5R6Hs7uJ9KgF13D_1elk15Nd0",
-  "authDomain": "family-space-portal.firebaseapp.com",
-  "projectId": "family-space-portal",
-  "storageBucket": "family-space-portal.appspot.com",
-  "messagingSenderId": "739307717779",
-  "appId": "1:739307717779:web:c873eaa7e19f7839a53966"
-}`);
-            if (configJson) {
-                try {
-                    const parsed = JSON.parse(configJson);
-                    localStorage.setItem('family_space_fb_config', JSON.stringify(parsed));
-                    alert("Firebase Config Saved! Reloading...");
-                    location.reload();
-                } catch (e) {
-                    alert("Invalid JSON");
-                }
+                alert("Incorrect PIN! Try 2002");
             }
         }
 
@@ -684,7 +671,7 @@
                 address: document.getElementById('form-address').value,
                 link: document.getElementById('form-link').value,
                 photo: document.getElementById('form-photo').value,
-                tags: [document.getElementById('form-tag').value]
+                tags: [document.getElementById('form-tag'].value]
             };
 
             if (idx === -1) {
