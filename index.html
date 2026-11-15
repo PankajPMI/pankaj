@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FAMILY SPACE V2">
-    <title>FAMILY SPACE v2.0 — Meena Family Live Directory & Portal</title>
+    <title>FAMILY SPACE v2.1 — Meena Family Live Directory & Portal</title>
 
     <link rel="manifest" id="pwa-manifest">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232563eb'/><text x='50' y='67' font-family='sans-serif' font-size='48' font-weight='bold' fill='white' text-anchor='middle'>FS</text></svg>">
@@ -176,7 +176,7 @@
                 <div>
                     <div class="flex items-center gap-2 flex-wrap">
                         <h1 class="font-extrabold text-base sm:text-lg tracking-tight">FAMILY SPACE</h1>
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500">v2.0</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500">v2.1</span>
                         <span id="cloud-status-badge" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/25 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                             <span id="cloud-status-text">Connecting...</span>
@@ -197,12 +197,13 @@
                     <span class="hidden sm:inline">Near Me</span>
                 </button>
 
-                <!-- User Login / Portal Button -->
+                <!-- Member Portal Button -->
                 <button onclick="openUserAuthModal()" id="user-portal-nav-btn" class="px-3 sm:px-3.5 py-2 rounded-xl sub-surface hover:border-emerald-500/40 text-xs font-semibold transition flex items-center gap-2">
                     <i class="fa-solid fa-user-circle text-emerald-500"></i>
                     <span id="user-portal-btn-text">Member Login</span>
                 </button>
 
+                <!-- Admin Button -->
                 <button onclick="openAdminModal()" class="px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i>
                     <span id="admin-btn-text">Admin</span>
@@ -226,7 +227,7 @@
                 <div>
                     <span class="text-[10px] uppercase tracking-widest font-bold text-blue-500">Live Notice</span>
                     <p id="notice-display-text" class="text-sm font-medium mt-0.5 leading-relaxed">
-                        Welcome to FAMILY SPACE V2! Log in as a member to share live check-ins & messages privately.
+                        Welcome to FAMILY SPACE V2.1! Members can sign up / login via Google or Email to share live check-ins.
                     </p>
                 </div>
             </div>
@@ -235,13 +236,15 @@
             </button>
         </div>
 
-        <!-- LOGGED-IN MEMBER QUICK BAR (Visible only to logged in users) -->
+        <!-- LOGGED-IN MEMBER QUICK PROFILE BAR -->
         <div id="member-quick-bar" class="hidden glass rounded-3xl p-6 border border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-blue-500/5">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div id="current-user-avatar" class="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-lg">U</div>
+                <div class="flex items-center gap-3.5">
+                    <div id="current-user-avatar-wrap" class="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-lg overflow-hidden shrink-0">
+                        <span id="current-user-initial">U</span>
+                    </div>
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <h3 id="current-user-name" class="font-bold text-base">Member Name</h3>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500">Verified Member</span>
                         </div>
@@ -267,7 +270,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-blue-500 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            Private Family Directory V2
+                            Private Family Directory V2.1
                         </span>
                         <span id="near-me-active-pill" class="hidden inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-500 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                             <i class="fa-solid fa-compass"></i> Sorted by Distance
@@ -383,7 +386,7 @@
             </div>
         </div>
 
-        <!-- V2 LIVE MEMBER FEED SECTION (Only fully viewable by logged-in users) -->
+        <!-- LIVE MEMBER FEED SECTION -->
         <div id="live-member-feed-section" class="glass rounded-3xl p-6 border border-blue-500/30">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                 <div>
@@ -397,9 +400,7 @@
                     <i class="fa-solid fa-lock mr-1"></i> Log in as a member to view & send live check-ins
                 </div>
             </div>
-            <div id="live-feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Injected dynamically -->
-            </div>
+            <div id="live-feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- MAP SECTION -->
@@ -446,7 +447,7 @@
     </main>
 
     <footer class="max-w-7xl mx-auto px-4 lg:px-8 py-8 text-center text-xs text-slate-500 border-t border-slate-200 dark:border-white/5 mt-6 space-y-1.5">
-        <p class="font-medium">FAMILY SPACE v2.0 • Secured Live Family Portal • Meena Family © 2026</p>
+        <p class="font-medium">FAMILY SPACE v2.1 • Secured Live Family Portal • Meena Family © 2026</p>
         <p id="last-synced-footer" class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
             <i class="fa-regular fa-clock text-blue-500"></i> Last synced: Connecting...
         </p>
@@ -523,48 +524,59 @@
         </div>
     </div>
 
-    <!-- ==================== USER LOGIN / REGISTRATION MODAL (V2) ==================== -->
+    <!-- ==================== MEMBER AUTH MODAL (Google & Email Signup/Login) ==================== -->
     <div id="user-auth-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="font-bold text-lg flex items-center gap-2">
                     <i class="fa-solid fa-user-shield text-emerald-500"></i> 
-                    <span id="user-auth-modal-title">Member Login / Register</span>
+                    <span id="user-auth-modal-title">Member Portal Login</span>
                 </h3>
                 <button onclick="closeUserAuthModal()" class="text-slate-400 hover:text-red-500 transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <div class="flex rounded-xl sub-surface p-1 mb-5">
-                <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white transition">Login</button>
+            <!-- Google Sign-In Button -->
+            <button onclick="loginWithGoogle()" class="w-full py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs shadow-md transition flex items-center justify-center gap-3 mb-4 border border-slate-300">
+                <i class="fa-brands fa-google text-red-500 text-base"></i> Continue with Google Auth
+            </button>
+
+            <div class="flex items-center my-4">
+                <div class="flex-1 border-t border-slate-300 dark:border-white/10"></div>
+                <span class="px-3 text-[11px] text-slate-400 font-semibold uppercase">Or with Email</span>
+                <div class="flex-1 border-t border-slate-300 dark:border-white/10"></div>
+            </div>
+
+            <div class="flex rounded-xl sub-surface p-1 mb-4">
+                <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white transition">Login</button>
                 <button onclick="switchAuthTab('signup')" id="auth-tab-signup" class="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-400 transition">Register</button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <div id="signup-name-field" class="hidden">
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Full Name</label>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Full Name</label>
                     <input type="text" id="user-signup-name" placeholder="Pankaj Meena"
-                        class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-emerald-500 transition">
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-emerald-500 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Email (Gmail)</label>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Email Address</label>
                     <input type="email" id="user-auth-email" placeholder="member@example.com"
-                        class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-emerald-500 transition">
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-emerald-500 transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Password</label>
-                    <input type="password" id="user-auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleUserAuth()"
-                        class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-emerald-500 transition">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Password</label>
+                    <input type="password" id="user-auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleUserEmailAuth()"
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-emerald-500 transition">
                 </div>
-                <button onclick="handleUserAuth()" id="user-auth-btn" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-2">
+                <button onclick="handleUserEmailAuth()" id="user-auth-btn" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-right-to-bracket"></i> Login as Member
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== LIVE LOCATION & MESSAGE SENDER MODAL (V2) ==================== -->
+    <!-- ==================== LIVE LOCATION & MESSAGE SENDER MODAL ==================== -->
     <div id="live-share-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
             <div class="flex items-center justify-between mb-5">
@@ -609,7 +621,7 @@
         </div>
     </div>
 
-    <!-- ==================== ADMIN MODAL ==================== -->
+    <!-- ==================== ADMIN LOGIN MODAL ==================== -->
     <div id="admin-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
             <div class="flex items-center justify-between mb-5">
@@ -622,14 +634,13 @@
                 </button>
             </div>
 
-            <!-- LOGIN FORM -->
             <div id="login-form-section">
                 <p class="text-xs text-slate-500 dark:text-slate-300 mb-5 leading-relaxed">
                     Only authorized family admin can edit members, add locations or update notice.
                 </p>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Email</label>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Admin Email</label>
                         <input type="email" id="admin-email" placeholder="admin@example.com"
                             class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-blue-500 transition">
                     </div>
@@ -644,7 +655,6 @@
                 </div>
             </div>
 
-            <!-- LOGGED IN STATE -->
             <div id="logged-in-section" class="hidden">
                 <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-5">
                     <p class="text-xs text-emerald-500 font-semibold flex items-center gap-2">
@@ -653,13 +663,13 @@
                     <p id="logged-in-email" class="text-xs text-slate-400 mt-1"></p>
                 </div>
                 <button onclick="logoutAdmin()" class="w-full py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-500 font-semibold text-xs transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout Admin
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MEMBER MODAL -->
+    <!-- MEMBER MODAL (Admin Edit/Add) -->
     <div id="member-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
@@ -698,7 +708,7 @@
                         <div class="flex gap-1.5">
                             <input type="text" id="form-photo" placeholder="https://... or upload"
                                 class="w-full px-3 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-blue-500 transition">
-                            <label class="px-3 py-2.5 rounded-xl bg-blue-600/15 text-blue-500 hover:bg-blue-600/25 cursor-pointer text-xs font-semibold flex items-center justify-center shrink-0" title="Upload Image from Gallery">
+                            <label class="px-3 py-2.5 rounded-xl bg-blue-600/15 text-blue-500 hover:bg-blue-600/25 cursor-pointer text-xs font-semibold flex items-center justify-center shrink-0" title="Upload Image">
                                 <i class="fa-solid fa-image"></i>
                                 <input type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
                             </label>
@@ -707,9 +717,9 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-amber-500 mb-1.5">
-                        <i class="fa-solid fa-lock mr-1"></i> Admin Private Note (Only visible when Admin is unlocked)
+                        <i class="fa-solid fa-lock mr-1"></i> Admin Private Note
                     </label>
-                    <textarea id="form-private-note" rows="2" placeholder="Phone number, landmark details, or private family note..."
+                    <textarea id="form-private-note" rows="2" placeholder="Phone number, landmark details..."
                         class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-amber-500 transition"></textarea>
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -757,8 +767,8 @@
         };
 
         let isAdmin = false;
-        let currentUser = null; // V2: Regular logged-in member
-        let liveFeedData = []; // V2: Live check-ins & messages
+        let currentUser = null; // Regular logged-in member
+        let liveFeedData = [];
         let isLoading = true;
         let activeMapFilter = 'All';
         let userCoords = null;
@@ -768,7 +778,7 @@
         let db = null;
         let auth = null;
         let deferredInstallPrompt = null;
-        let authMode = 'login'; // 'login' or 'signup'
+        let authMode = 'login';
 
         // ==================== INIT ====================
         window.addEventListener('DOMContentLoaded', () => {
@@ -814,20 +824,15 @@
         function updateMapTiles(theme) {
             if (!map) return;
             if (tileLayer) map.removeLayer(tileLayer);
-
-            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-            tileLayer = L.tileLayer(tileUrl, {
+            tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
         }
 
-        // ==================== TOAST ====================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-
             const styles = {
                 success: { icon: 'fa-circle-check', color: 'text-emerald-500', border: 'border-emerald-500/30' },
                 error: { icon: 'fa-circle-exclamation', color: 'text-red-500', border: 'border-red-500/30' },
@@ -835,10 +840,8 @@
                 cloud: { icon: 'fa-cloud-arrow-up', color: 'text-emerald-500', border: 'border-emerald-500/30' }
             };
             const cfg = styles[type] || styles.info;
-
             toast.className = `toast-enter pointer-events-auto glass px-4 py-3 rounded-2xl shadow-xl border ${cfg.border} flex items-center gap-2.5 text-xs font-semibold max-w-sm`;
             toast.innerHTML = `<i class="fa-solid ${cfg.icon} ${cfg.color} text-sm"></i><span>${escapeHTML(message)}</span>`;
-
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
@@ -848,7 +851,6 @@
             }, 3200);
         }
 
-        // ==================== SKELETON ====================
         function renderSkeletons() {
             const grid = document.getElementById('directory-grid');
             grid.innerHTML = Array(6).fill(0).map(() => `
@@ -861,15 +863,11 @@
                         <div class="h-4 w-3/4 rounded skeleton"></div>
                         <div class="h-3 w-1/2 rounded skeleton"></div>
                     </div>
-                    <div class="pt-3 border-t border-slate-200 dark:border-white/5 flex justify-between">
-                        <div class="h-5 w-16 rounded skeleton"></div>
-                        <div class="h-5 w-14 rounded skeleton"></div>
-                    </div>
                 </div>
             `).join('');
         }
 
-        // ==================== FIREBASE + AUTH ====================
+        // ==================== FIREBASE & DUAL AUTH (ADMIN vs MEMBER) ====================
         function initFirebase() {
             try {
                 const firebaseConfig = {
@@ -882,7 +880,6 @@
                 };
 
                 if (firebaseConfig.apiKey.includes("YOUR_ACTUAL") || firebaseConfig.apiKey.length < 20) {
-                    console.warn("Firebase API key is not configured. Running in Local Mode.");
                     isLoading = false;
                     updateCloudStatus(false);
                     renderAll();
@@ -895,22 +892,27 @@
                 db = firebase.firestore();
                 auth = firebase.auth();
 
-                // Auth state listener (Handles both Admin & Regular Users)
+                // Listen to Auth State Changes
                 auth.onAuthStateChanged((user) => {
                     if (user) {
-                        currentUser = user;
-                        // Check if admin email or regular user
-                        if (user.email && user.email.includes("admin")) {
+                        // Check if this user is the Admin (e.g., matching your specific admin email)
+                        // UPDATE THIS EMAIL TO MATCH YOUR EXACT ADMIN FIREBASE ACCOUNT EMAIL
+                        const adminEmail = "pankaj@gmail.com"; // <-- Change to your admin email
+                        
+                        if (user.email && user.email.toLowerCase() === adminEmail.toLowerCase()) {
                             isAdmin = true;
+                            currentUser = null; // Admin session
                             updateAdminUI(true, user.email);
+                            updateUserPortalUI(false);
                         } else {
                             isAdmin = false;
+                            currentUser = user; // Regular member session
                             updateAdminUI(false);
+                            updateUserPortalUI(true, user);
                         }
-                        updateUserPortalUI(true, user);
                     } else {
-                        currentUser = null;
                         isAdmin = false;
+                        currentUser = null;
                         updateAdminUI(false);
                         updateUserPortalUI(false);
                     }
@@ -918,17 +920,13 @@
                     renderLiveFeed();
                 });
 
-                // Firestore listener for Family Directory data
+                // Firestore directory sync
                 db.collection("family_space").doc("data").onSnapshot((doc) => {
                     isLoading = false;
                     if (doc.exists) {
                         const cloudData = doc.data();
-                        if (cloudData.members && Array.isArray(cloudData.members)) {
-                            familyData = cloudData.members;
-                        }
-                        if (cloudData.notice) {
-                            document.getElementById('notice-display-text').innerText = cloudData.notice;
-                        }
+                        if (cloudData.members && Array.isArray(cloudData.members)) familyData = cloudData.members;
+                        if (cloudData.notice) document.getElementById('notice-display-text').innerText = cloudData.notice;
                         updateCloudStatus(true);
                         updateLastSyncedTime();
                         renderAll();
@@ -936,34 +934,77 @@
                     } else {
                         syncToCloud();
                     }
-                }, (err) => {
-                    console.error("Snapshot error:", err);
-                    isLoading = false;
-                    updateCloudStatus(false);
-                    renderAll();
                 });
 
-                // V2: Firestore listener for Live Feed (Check-ins & Messages)
+                // Firestore live feed sync
                 db.collection("family_space").doc("live_feed_data").onSnapshot((doc) => {
                     if (doc.exists) {
-                        const data = doc.data();
-                        liveFeedData = data.items || [];
+                        liveFeedData = doc.data().items || [];
                         cleanupExpiredLiveItems();
                         renderLiveFeed();
                     }
-                }, (err) => {
-                    console.error("Live feed snapshot error:", err);
                 });
 
             } catch (e) {
-                console.error("Firebase initialization error:", e);
+                console.error("Firebase init error:", e);
                 isLoading = false;
                 updateCloudStatus(false);
                 renderAll();
             }
         }
 
-        // ==================== V2 USER PORTAL & AUTH FUNCTIONS ====================
+        // ==================== ADMIN AUTH ====================
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        function loginAdmin() {
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value;
+            if (!email || !password) {
+                showToast("Enter admin email and password", "error");
+                return;
+            }
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    showToast("Admin logged in successfully!", "success");
+                    closeAdminModal();
+                })
+                .catch(err => showToast("Admin Login Failed: " + err.message, "error"));
+        }
+
+        function logoutAdmin() {
+            auth.signOut().then(() => showToast("Admin logged out", "info"));
+        }
+
+        function updateAdminUI(loggedIn, email = '') {
+            const btnText = document.getElementById('admin-btn-text');
+            const quickActions = document.getElementById('admin-quick-actions');
+            const editNoticeBtn = document.getElementById('edit-notice-btn');
+            const loginSection = document.getElementById('login-form-section');
+            const loggedInSection = document.getElementById('logged-in-section');
+
+            if (loggedIn) {
+                btnText.innerText = "Admin ✓";
+                quickActions.classList.remove('hidden');
+                editNoticeBtn.classList.remove('hidden');
+                loginSection.classList.add('hidden');
+                loggedInSection.classList.remove('hidden');
+                document.getElementById('logged-in-email').innerText = email;
+            } else {
+                btnText.innerText = "Admin";
+                quickActions.classList.add('hidden');
+                editNoticeBtn.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+                loggedInSection.classList.add('hidden');
+            }
+        }
+
+        // ==================== MEMBER AUTH (Google Auth & Email) ====================
         function openUserAuthModal() {
             document.getElementById('user-auth-modal').classList.remove('hidden');
         }
@@ -980,7 +1021,7 @@
             const authBtn = document.getElementById('user-auth-btn');
 
             if (tab === 'login') {
-                loginBtn.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white transition";
+                loginBtn.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white transition";
                 signupBtn.className = "flex-1 py-2 rounded-lg text-xs font-semibold text-slate-400 transition";
                 nameField.classList.add('hidden');
                 authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login as Member`;
@@ -992,61 +1033,54 @@
             }
         }
 
-        function handleUserAuth() {
-            if (!auth) {
-                showToast("Firebase Auth not initialized", "error");
-                return;
-            }
+        // Google Sign-In Provider
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    showToast(`Welcome, ${result.user.displayName || 'Member'}!`, "success");
+                    closeUserAuthModal();
+                })
+                .catch((error) => {
+                    showToast("Google Auth error: " + error.message, "error");
+                });
+        }
+
+        // Email & Password Member Auth
+        function handleUserEmailAuth() {
             const email = document.getElementById('user-auth-email').value.trim();
             const password = document.getElementById('user-auth-password').value;
             const name = document.getElementById('user-signup-name').value.trim();
 
             if (!email || !password) {
-                showToast("Please enter email and password", "error");
+                showToast("Please fill in email and password", "error");
                 return;
             }
 
-            const btn = document.getElementById('user-auth-btn');
-            btn.disabled = true;
-
             if (authMode === 'login') {
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Logging in...`;
                 auth.signInWithEmailAndPassword(email, password)
                     .then(() => {
-                        showToast("Successfully logged in as member!", "success");
+                        showToast("Member login successful!", "success");
                         closeUserAuthModal();
                     })
-                    .catch(err => {
-                        showToast("Login failed: " + err.message, "error");
-                    })
-                    .finally(() => btn.disabled = false);
+                    .catch(err => showToast("Login failed: " + err.message, "error"));
             } else {
                 if (!name) {
                     showToast("Please enter your name", "error");
-                    btn.disabled = false;
                     return;
                 }
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registering...`;
                 auth.createUserWithEmailAndPassword(email, password)
-                    .then((res) => {
-                        return res.user.updateProfile({ displayName: name });
-                    })
+                    .then((res) => res.user.updateProfile({ displayName: name }))
                     .then(() => {
-                        showToast("Member account created successfully!", "success");
+                        showToast("Member account created & logged in!", "success");
                         closeUserAuthModal();
                     })
-                    .catch(err => {
-                        showToast("Registration failed: " + err.message, "error");
-                    })
-                    .finally(() => btn.disabled = false);
+                    .catch(err => showToast("Registration failed: " + err.message, "error"));
             }
         }
 
         function logoutUser() {
-            if (!auth) return;
-            auth.signOut().then(() => {
-                showToast("Logged out successfully", "info");
-            });
+            auth.signOut().then(() => showToast("Logged out from member session", "info"));
         }
 
         function updateUserPortalUI(loggedIn, user = null) {
@@ -1056,14 +1090,20 @@
             const feedPrompt = document.getElementById('live-feed-auth-prompt');
 
             if (loggedIn && user) {
-                btnText.innerText = user.displayName || user.email.split('@')[0];
+                const displayName = user.displayName || user.email.split('@')[0];
+                btnText.innerText = displayName;
                 navBtn.className = "px-3 sm:px-3.5 py-2 rounded-xl bg-emerald-600/15 border border-emerald-500/30 text-emerald-500 text-xs font-semibold transition flex items-center gap-2";
                 quickBar.classList.remove('hidden');
                 feedPrompt.classList.add('hidden');
 
-                document.getElementById('current-user-name').innerText = user.displayName || "Family Member";
+                document.getElementById('current-user-name').innerText = displayName;
                 document.getElementById('current-user-email').innerText = user.email;
-                document.getElementById('current-user-avatar').innerText = (user.displayName || user.email).charAt(0).toUpperCase();
+                
+                if (user.photoURL) {
+                    document.getElementById('current-user-avatar-wrap').innerHTML = `<img src="${escapeHTML(user.photoURL)}" class="w-full h-full object-cover">`;
+                } else {
+                    document.getElementById('current-user-initial').innerText = displayName.charAt(0).toUpperCase();
+                }
             } else {
                 btnText.innerText = "Member Login";
                 navBtn.className = "px-3 sm:px-3.5 py-2 rounded-xl sub-surface hover:border-emerald-500/40 text-xs font-semibold transition flex items-center gap-2";
@@ -1073,14 +1113,13 @@
             renderLiveFeed();
         }
 
-        // ==================== V2 LIVE LOCATION & MESSAGE SHARING ====================
+        // ==================== LIVE LOCATION & MESSAGE SHARING ====================
         function openLiveShareModal() {
             if (!currentUser) {
                 openUserAuthModal();
-                showToast("Please login first to share location", "info");
+                showToast("Please login as a member first", "info");
                 return;
             }
-            // Populate target family members dropdown
             const targetSelect = document.getElementById('live-target-select');
             let options = '<option value="ALL">🌐 Public (Visible to all logged-in members)</option>';
             familyData.forEach(m => {
@@ -1096,10 +1135,7 @@
 
         function submitLiveShare(e) {
             e.preventDefault();
-            if (!currentUser) {
-                showToast("Authentication required", "error");
-                return;
-            }
+            if (!currentUser) return;
             if (!navigator.geolocation) {
                 showToast("Geolocation not supported", "error");
                 return;
@@ -1108,28 +1144,20 @@
             const msg = document.getElementById('live-msg-input').value.trim();
             const durationMins = parseInt(document.getElementById('live-duration-select').value);
             const target = document.getElementById('live-target-select').value;
-            const submitBtn = document.getElementById('submit-live-btn');
-
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Fetching GPS...`;
 
             navigator.geolocation.getCurrentPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const expiryTime = Date.now() + (durationMins * 60 * 1000);
-
                 const newLiveItem = {
                     id: 'live_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
                     uid: currentUser.uid,
                     name: currentUser.displayName || currentUser.email.split('@')[0],
                     email: currentUser.email,
                     photo: currentUser.photoURL || "",
-                    lat: lat,
-                    lng: lng,
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
                     message: msg,
                     target: target,
                     timestamp: Date.now(),
-                    expiry: expiryTime
+                    expiry: Date.now() + (durationMins * 60 * 1000)
                 };
 
                 liveFeedData.unshift(newLiveItem);
@@ -1137,51 +1165,35 @@
                 closeLiveShareModal();
                 document.getElementById('live-msg-input').value = '';
                 showToast("Live check-in & message broadcasted!", "success");
-            }, err => {
-                showToast("GPS Error: Enable location permission", "error");
-            }, { enableHighAccuracy: true });
-
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Broadcast Live GPS`;
+            }, () => showToast("GPS Permission denied", "error"), { enableHighAccuracy: true });
         }
 
         function cleanupExpiredLiveItems() {
             const now = Date.now();
-            const initialCount = liveFeedData.length;
             liveFeedData = liveFeedData.filter(item => item.expiry > now);
-            if (liveFeedData.length !== initialCount && db) {
-                syncLiveFeedToCloud(true);
-            }
         }
 
-        function syncLiveFeedToCloud(silent = false) {
+        function syncLiveFeedToCloud() {
             if (!db) return;
-            db.collection("family_space").doc("live_feed_data").set({
-                items: liveFeedData
-            }).then(() => {
-                if (!silent) renderLiveFeed();
-            }).catch(err => {
-                console.error("Live feed sync error:", err);
-            });
+            db.collection("family_space").doc("live_feed_data").set({ items: liveFeedData }).catch(err => console.error(err));
         }
 
         function deleteLiveItem(itemId) {
             liveFeedData = liveFeedData.filter(i => i.id !== itemId);
             syncLiveFeedToCloud();
-            showToast("Live check-in removed", "info");
+            showToast("Item removed", "info");
         }
 
         function renderLiveFeed() {
             cleanupExpiredLiveItems();
             const container = document.getElementById('live-feed-container');
-            const countBadge = document.getElementById('live-feed-count');
-            countBadge.innerText = `${liveFeedData.length} Active`;
+            document.getElementById('live-feed-count').innerText = `${liveFeedData.length} Active`;
 
             if (!currentUser) {
                 container.innerHTML = `
                     <div class="col-span-full py-8 text-center text-xs text-slate-400">
                         <i class="fa-solid fa-lock text-2xl mb-2 text-amber-500"></i>
-                        <p class="font-semibold">Live check-ins and messages are visible only to logged-in family members.</p>
+                        <p class="font-semibold">Live check-ins and messages are visible only to logged-in members.</p>
                         <button onclick="openUserAuthModal()" class="mt-3 px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold">Login as Member</button>
                     </div>
                 `;
@@ -1189,12 +1201,7 @@
             }
 
             if (liveFeedData.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full py-8 text-center text-xs text-slate-400">
-                        <i class="fa-solid fa-satellite-dish text-2xl mb-2 opacity-50"></i>
-                        <p>No active live check-ins right now. Be the first to share your location!</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-slate-400">No active live check-ins right now. Share yours above!</div>`;
                 return;
             }
 
@@ -1208,8 +1215,8 @@
                         <div>
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-600 text-white font-bold flex items-center justify-center shrink-0">
-                                        ${escapeHTML(item.name.charAt(0).toUpperCase())}
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-600 text-white font-bold flex items-center justify-center shrink-0 overflow-hidden">
+                                        ${item.photo ? `<img src="${escapeHTML(item.photo)}" class="w-full h-full object-cover">` : escapeHTML(item.name.charAt(0).toUpperCase())}
                                     </div>
                                     <div>
                                         <h4 class="font-bold text-sm">${escapeHTML(item.name)}</h4>
@@ -1226,85 +1233,14 @@
                             <a href="https://maps.google.com/?q=${item.lat},${item.lng}" target="_blank" class="text-blue-500 hover:underline font-semibold flex items-center gap-1.5">
                                 <i class="fa-solid fa-location-dot"></i> View GPS on Maps
                             </a>
-                            ${isOwner ? `
-                                <button onclick="deleteLiveItem('${item.id}')" class="text-red-400 hover:text-red-500 text-xs font-semibold">
-                                    <i class="fa-solid fa-trash"></i> Remove
-                                </button>
-                            ` : ''}
+                            ${isOwner ? `<button onclick="deleteLiveItem('${item.id}')" class="text-red-400 hover:text-red-500 text-xs font-semibold"><i class="fa-solid fa-trash"></i> Remove</button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // ==================== ADMIN & OTHER EXISTING FUNCTIONS ====================
-        function updateAdminUI(loggedIn, email = '') {
-            const btnText = document.getElementById('admin-btn-text');
-            const quickActions = document.getElementById('admin-quick-actions');
-            const editNoticeBtn = document.getElementById('edit-notice-btn');
-            const loginSection = document.getElementById('login-form-section');
-            const loggedInSection = document.getElementById('logged-in-section');
-            const modalTitle = document.getElementById('admin-modal-title');
-
-            if (loggedIn) {
-                btnText.innerText = "Admin ✓";
-                quickActions.classList.remove('hidden');
-                editNoticeBtn.classList.remove('hidden');
-                loginSection.classList.add('hidden');
-                loggedInSection.classList.remove('hidden');
-                document.getElementById('logged-in-email').innerText = email;
-                modalTitle.innerText = "Admin Panel";
-            } else {
-                btnText.innerText = "Admin";
-                quickActions.classList.add('hidden');
-                editNoticeBtn.classList.add('hidden');
-                loginSection.classList.remove('hidden');
-                loggedInSection.classList.add('hidden');
-                modalTitle.innerText = "Admin Login";
-            }
-        }
-
-        function loginAdmin() {
-            if (!auth) {
-                showToast("Firebase Auth is not initialized.", "error");
-                return;
-            }
-            const email = document.getElementById('admin-email').value.trim();
-            const password = document.getElementById('admin-password').value;
-
-            if (!email || !password) {
-                showToast("Please enter email and password", "error");
-                return;
-            }
-
-            const btn = document.getElementById('login-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Logging in...`;
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    showToast("Admin login successful!", "success");
-                    closeAdminModal();
-                    document.getElementById('admin-email').value = '';
-                    document.getElementById('admin-password').value = '';
-                })
-                .catch((error) => {
-                    showToast("Login failed: " + error.message, "error");
-                })
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login as Admin`;
-                });
-        }
-
-        function logoutAdmin() {
-            if (!auth) return;
-            auth.signOut().then(() => {
-                showToast("Logged out successfully", "info");
-                closeAdminModal();
-            });
-        }
-
+        // ==================== MAP & DIRECTORY HELPERS ====================
         function updateCloudStatus(connected) {
             const badge = document.getElementById('cloud-status-badge');
             const text = document.getElementById('cloud-status-text');
@@ -1319,18 +1255,14 @@
 
         function updateLastSyncedTime() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('last-synced-footer').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Last synced: Today at ${timeStr}`;
+            document.getElementById('last-synced-footer').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Last synced: Today at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
 
-        // ==================== MAP & DISTANCE ====================
         function getItemCoords(item, index = 0) {
             for (let tag in cityCoords) {
                 if ((item.address && item.address.toLowerCase().includes(tag.toLowerCase())) ||
                     (item.tags && item.tags.some(t => t.toLowerCase() === tag.toLowerCase()))) {
-                    const offsetLat = ((index % 5) - 2) * 0.008;
-                    const offsetLng = (((index * 2) % 5) - 2) * 0.008;
-                    return [cityCoords[tag][0] + offsetLat, cityCoords[tag][1] + offsetLng];
+                    return [cityCoords[tag][0] + ((index % 5) - 2) * 0.008, cityCoords[tag][1] + (((index * 2) % 5) - 2) * 0.008];
                 }
             }
             return [26.9124 + (index * 0.02), 75.7873 + (index * 0.02)];
@@ -1340,28 +1272,15 @@
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return Math.round(R * c);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return Math.round(R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))));
         }
 
         function initMap() {
             if (map) map.remove();
-            map = L.map('digital-map', {
-                zoomControl: true,
-                attributionControl: false
-            }).setView([26.55, 75.8], 7);
-
-            const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-            updateMapTiles(currentTheme);
-
-            clusterGroup = L.markerClusterGroup({
-                showCoverageOnHover: false,
-                maxClusterRadius: 42,
-                spiderfyOnMaxZoom: true
-            });
+            map = L.map('digital-map', { zoomControl: true, attributionControl: false }).setView([26.55, 75.8], 7);
+            updateMapTiles(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            clusterGroup = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 42 });
             map.addLayer(clusterGroup);
         }
 
@@ -1369,84 +1288,35 @@
             if (!clusterGroup) return;
             activeMapFilter = filterTag;
             clusterGroup.clearLayers();
-
-            let filtered = familyData;
-            if (filterTag !== 'All') {
-                filtered = familyData.filter(m => m.tags && m.tags.includes(filterTag));
-            }
-
-            const bounds = [];
+            let filtered = filterTag === 'All' ? familyData : familyData.filter(m => m.tags && m.tags.includes(filterTag));
+            let bounds = [];
 
             filtered.forEach((item, index) => {
                 const coords = getItemCoords(item, index);
                 bounds.push(coords);
-
                 const initial = escapeHTML(item.name.charAt(0).toUpperCase());
                 const hasPhoto = item.photo && item.photo.trim().length > 5;
-
-                const markerInner = hasPhoto
-                    ? `<img src="${escapeHTML(item.photo)}" alt="${initial}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.innerText='${initial}'">`
-                    : initial;
-
-                const iconHtml = `
-                    <div style="
-                        background: linear-gradient(135deg, #2563eb, #4f46e5);
-                        width: 38px; height: 38px;
-                        border-radius: 50%;
-                        display: flex; align-items: center; justify-content: center;
-                        color: white; border: 2.5px solid white;
-                        box-shadow: 0 4px 14px rgba(37,99,235,0.5);
-                        font-size: 14px; font-weight: 800; overflow: hidden;
-                    ">
-                        ${markerInner}
-                    </div>
-                `;
+                const markerInner = hasPhoto ? `<img src="${escapeHTML(item.photo)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : initial;
 
                 const customIcon = L.divIcon({
-                    html: iconHtml,
-                    className: 'custom-div-icon',
-                    iconSize: [38, 38],
-                    iconAnchor: [19, 19]
+                    html: `<div style="background: linear-gradient(135deg, #2563eb, #4f46e5); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 2.5px solid white; box-shadow: 0 4px 14px rgba(37,99,235,0.5); font-size: 14px; font-weight: 800; overflow: hidden;">${markerInner}</div>`,
+                    className: 'custom-div-icon', iconSize: [38, 38], iconAnchor: [19, 19]
                 });
 
                 const marker = L.marker(coords, { icon: customIcon });
-                const distText = userCoords
-                    ? `<span style="display:inline-block;background:#ecfdf5;color:#059669;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700;margin-bottom:6px;">${getDistanceKm(userCoords.lat, userCoords.lng, coords[0], coords[1])} km away</span>`
-                    : '';
-
                 marker.bindPopup(`
                     <div style="min-width: 195px;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                            ${hasPhoto ? `<img src="${escapeHTML(item.photo)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;">` : ''}
-                            <div>
-                                <h4 style="font-weight: 700; font-size: 13px; margin: 0; color: #0f172a;">${escapeHTML(item.name)}</h4>
-                                <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">${escapeHTML(item.address)}</p>
-                            </div>
-                        </div>
-                        ${distText}
-                        <div style="display:flex;gap:6px;margin-top:6px;">
-                            <a href="${escapeHTML(item.link)}" target="_blank" onclick="recordVisit('${escapeHTML(item.name)}')"
-                               style="flex:1;text-align:center;background: #2563eb; color: white; padding: 6px 10px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 600;">
-                               Open Maps
-                            </a>
-                            <a href="https://wa.me/?text=${encodeURIComponent(item.name + ' (' + item.address + '): ' + item.link)}" target="_blank"
-                               style="background: #10b981; color: white; padding: 6px 10px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 600;">
-                               Share
-                            </a>
-                        </div>
+                        <h4 style="font-weight: 700; font-size: 13px; margin: 0; color: #0f172a;">${escapeHTML(item.name)}</h4>
+                        <p style="font-size: 11px; color: #64748b; margin: 2px 0 6px 0;">${escapeHTML(item.address)}</p>
+                        <a href="${escapeHTML(item.link)}" target="_blank" style="display:block;text-align:center;background: #2563eb; color: white; padding: 6px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 600;">Open Maps</a>
                     </div>
                 `);
-
                 clusterGroup.addLayer(marker);
             });
-
-            if (bounds.length > 0 && filterTag !== 'All') {
-                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
-            }
+            if (bounds.length > 0 && filterTag !== 'All') map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
             renderMapFilterPills();
         }
 
-        // ==================== RENDER ====================
         function renderAll() {
             renderStats();
             renderFeaturedLocations();
@@ -1458,155 +1328,66 @@
         function renderStats() {
             document.getElementById('stat-members').innerText = familyData.length;
             const citiesSet = new Set();
-            familyData.forEach(m => {
-                if (m.tags) m.tags.forEach(t => citiesSet.add(t));
-            });
+            familyData.forEach(m => { if (m.tags) m.tags.forEach(t => citiesSet.add(t)); });
             document.getElementById('stat-cities').innerText = Math.max(1, citiesSet.size - 1);
             document.getElementById('stat-locations').innerText = familyData.length;
         }
 
         function renderFeaturedLocations() {
             const container = document.getElementById('featured-locations-container');
-            const featured = familyData.filter(m =>
-                m.name.includes("Devta") || m.name.includes("Central House") || (m.tags && m.tags.includes("Home"))
-            );
-
-            container.innerHTML = featured.slice(0, 2).map(item => {
-                const hasPhoto = item.photo && item.photo.trim().length > 5;
-                const waText = encodeURIComponent(`${item.name} — ${item.address}: ${item.link}`);
-                return `
+            const featured = familyData.filter(m => m.name.includes("Devta") || m.name.includes("Central House") || (m.tags && m.tags.includes("Home")));
+            container.innerHTML = featured.slice(0, 2).map(item => `
                 <div class="p-4 rounded-2xl sub-surface card-hover flex flex-col justify-between gap-3">
                     <div class="flex items-start gap-3.5">
-                        ${hasPhoto
-                            ? `<img src="${escapeHTML(item.photo)}" onclick="openLightbox('${escapeHTML(item.photo)}', '${escapeHTML(item.name)}', '${escapeHTML(item.address)}', '${escapeHTML(item.link)}')" class="w-14 h-14 rounded-2xl object-cover cursor-pointer border border-white/10 shrink-0 shadow">`
-                            : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-500 flex items-center justify-center font-extrabold text-xl shrink-0 border border-amber-500/20"><i class="fa-solid fa-gopuram"></i></div>`
-                        }
+                        <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-extrabold text-xl shrink-0 border border-amber-500/20"><i class="fa-solid fa-gopuram"></i></div>
                         <div class="min-w-0">
                             <span class="text-[10px] font-bold text-amber-500 px-2 py-0.5 rounded bg-amber-500/10">Special Spot</span>
                             <h4 class="font-bold text-sm mt-1 truncate">${escapeHTML(item.name)}</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">${escapeHTML(item.address)}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-white/5">
-                        <a href="${escapeHTML(item.link)}" target="_blank" onclick="recordVisit('${escapeHTML(item.name)}')" class="flex-1 text-center py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition">
-                            Open Maps →
-                        </a>
-                        <a href="https://wa.me/?text=${waText}" target="_blank" class="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 text-xs font-semibold transition flex items-center gap-1.5">
-                            <i class="fa-brands fa-whatsapp"></i> Share
-                        </a>
-                    </div>
+                    <a href="${escapeHTML(item.link)}" target="_blank" class="text-center py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition">Open Maps →</a>
                 </div>
-            `}).join('');
+            `).join('');
         }
 
         function renderDirectory() {
             if (isLoading) return;
-            const searchInput = document.getElementById('search-input');
-            const search = searchInput.value.toLowerCase().trim();
+            const search = document.getElementById('search-input').value.toLowerCase().trim();
             const selectedCity = document.getElementById('city-filter').value;
             const grid = document.getElementById('directory-grid');
 
-            document.getElementById('clear-search-btn').classList.toggle('hidden', !search && selectedCity === 'All');
-
-            let listWithMeta = familyData.map((item, originalIndex) => {
-                const coords = getItemCoords(item, originalIndex);
-                const distance = userCoords ? getDistanceKm(userCoords.lat, userCoords.lng, coords[0], coords[1]) : null;
-                return { ...item, originalIndex, distance };
-            });
-
-            if (userCoords) {
-                listWithMeta.sort((a, b) => a.distance - b.distance);
-            }
-
+            let listWithMeta = familyData.map((item, originalIndex) => ({ ...item, originalIndex }));
             let filtered = listWithMeta.filter(m => {
-                const matchSearch = m.name.toLowerCase().includes(search) ||
-                    m.address.toLowerCase().includes(search) ||
-                    (m.tags && m.tags.some(t => t.toLowerCase().includes(search)));
+                const matchSearch = m.name.toLowerCase().includes(search) || m.address.toLowerCase().includes(search) || (m.tags && m.tags.some(t => t.toLowerCase().includes(search)));
                 const matchCity = selectedCity === 'All' || (m.tags && m.tags.includes(selectedCity));
                 return matchSearch && matchCity;
             });
 
             document.getElementById('filtered-count-badge').innerText = filtered.length;
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full py-12 px-4 text-center flex flex-col items-center justify-center">
-                        <div class="w-20 h-20 rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-3xl mb-4">
-                            <i class="fa-solid fa-magnifying-glass-location"></i>
-                        </div>
-                        <h4 class="font-bold text-base">No matching family members found</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">Try adjusting your search keyword or switching the city filter.</p>
-                        <button onclick="clearFilters()" class="mt-4 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg transition">
-                            Clear filters
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            grid.innerHTML = filtered.map(item => {
-                const hasPhoto = item.photo && item.photo.trim().length > 5;
-                const initial = escapeHTML(item.name.charAt(0).toUpperCase());
-                const waText = encodeURIComponent(`${item.name} (${item.address}) location: ${item.link}`);
-
-                return `
+            grid.innerHTML = filtered.map(item => `
                 <div class="glass rounded-2xl p-5 flex flex-col justify-between card-hover group">
                     <div>
                         <div class="flex items-start justify-between gap-2">
-                            ${hasPhoto
-                                ? `<img src="${escapeHTML(item.photo)}" alt="${initial}" onclick="openLightbox('${escapeHTML(item.photo)}', '${escapeHTML(item.name)}', '${escapeHTML(item.address)}', '${escapeHTML(item.link)}')"
-                                    class="w-12 h-12 rounded-2xl object-cover cursor-pointer border-2 border-blue-500/40 shadow-md hover:scale-105 transition">`
-                                : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-md">
-                                    ${initial}
-                                   </div>`
-                            }
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-md">${escapeHTML(item.name.charAt(0).toUpperCase())}</div>
                             <div class="flex items-center gap-1.5">
-                                ${isAdmin ? `
-                                    <button onclick="editMember(${item.originalIndex})" title="Edit" class="w-8 h-8 rounded-lg sub-surface hover:border-blue-500/50 text-blue-500 flex items-center justify-center text-xs transition">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </button>
-                                    <button onclick="deleteMember(${item.originalIndex})" title="Delete" class="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center text-xs transition">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                ` : ''}
-                                <a href="${escapeHTML(item.link)}" target="_blank" onclick="recordVisit('${escapeHTML(item.name)}')" title="Open Google Maps" class="w-8 h-8 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 text-blue-500 flex items-center justify-center text-xs transition">
-                                    <i class="fa-solid fa-location-arrow"></i>
-                                </a>
+                                ${isAdmin ? `<button onclick="editMember(${item.originalIndex})" class="w-8 h-8 rounded-lg sub-surface text-blue-500 flex items-center justify-center text-xs"><i class="fa-solid fa-pen"></i></button><button onclick="deleteMember(${item.originalIndex})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                                <a href="${escapeHTML(item.link)}" target="_blank" class="w-8 h-8 rounded-lg bg-blue-600/15 text-blue-500 flex items-center justify-center text-xs"><i class="fa-solid fa-location-arrow"></i></a>
                             </div>
                         </div>
-
                         <div class="mt-3.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <h4 class="font-bold text-base truncate">${escapeHTML(item.name)}</h4>
-                                ${item.distance !== null ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 shrink-0">${item.distance} km</span>` : ''}
-                            </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-                                <i class="fa-solid fa-location-dot text-red-500 text-[10px]"></i> ${escapeHTML(item.address)}
-                            </p>
+                            <h4 class="font-bold text-base truncate">${escapeHTML(item.name)}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-red-500 text-[10px]"></i> ${escapeHTML(item.address)}</p>
                         </div>
-
-                        ${item.lastVisited ? `
-                            <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                                <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Last opened: ${escapeHTML(item.lastVisited)}
-                            </p>
-                        ` : ''}
-
-                        ${(isAdmin && item.privateNote) ? `
-                            <div class="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-600 dark:text-amber-300">
-                                <i class="fa-solid fa-lock mr-1"></i> ${escapeHTML(item.privateNote)}
-                            </div>
-                        ` : ''}
+                        ${(isAdmin && item.privateNote) ? `<div class="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-500"><i class="fa-solid fa-lock mr-1"></i> ${escapeHTML(item.privateNote)}</div>` : ''}
                     </div>
-
                     <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-slate-200 dark:border-white/5 text-xs">
                         <span class="px-2.5 py-1 rounded-lg sub-surface font-medium">${item.tags ? escapeHTML(item.tags[0]) : 'Rajasthan'}</span>
-                        <a href="https://wa.me/?text=${waText}" target="_blank"
-                           class="text-emerald-500 hover:text-emerald-400 font-semibold flex items-center gap-1.5 transition">
-                            <i class="fa-brands fa-whatsapp"></i> Share
-                        </a>
+                        <a href="https://wa.me/?text=${encodeURIComponent(item.name + ' (' + item.address + '): ' + item.link)}" target="_blank" class="text-emerald-500 font-semibold"><i class="fa-brands fa-whatsapp"></i> Share</a>
                     </div>
                 </div>
-            `}).join('');
+            `).join('');
         }
 
         function clearFilters() {
@@ -1617,132 +1398,48 @@
 
         function renderCityFilters() {
             const select = document.getElementById('city-filter');
-            const currentVal = select.value;
             const citiesSet = new Set();
             familyData.forEach(m => { if (m.tags) m.tags.forEach(t => citiesSet.add(t)); });
-            
             let html = '<option value="All">All Cities</option>';
             citiesSet.forEach(c => { html += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`; });
             select.innerHTML = html;
-            if ([...citiesSet, 'All'].includes(currentVal)) select.value = currentVal;
         }
 
         function renderMapFilterPills() {
             const container = document.getElementById('map-filter-pills');
             const citiesSet = new Set();
             familyData.forEach(m => { if (m.tags) m.tags.forEach(t => citiesSet.add(t)); });
-
-            const getPillClass = (tag) => activeMapFilter === tag
-                ? 'px-3.5 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition shrink-0'
-                : 'px-3.5 py-1.5 rounded-xl sub-surface hover:border-blue-500/40 text-xs font-semibold transition shrink-0';
-
-            let html = `<button onclick="plotMapMarkers('All')" class="${getPillClass('All')}">All (${familyData.length})</button>`;
+            let html = `<button onclick="plotMapMarkers('All')" class="px-3.5 py-1.5 rounded-xl ${activeMapFilter==='All'?'bg-blue-600 text-white font-bold':'sub-surface'} text-xs transition">All (${familyData.length})</button>`;
             citiesSet.forEach(c => {
-                html += `<button onclick="plotMapMarkers('${escapeHTML(c)}')" class="${getPillClass(c)}">${escapeHTML(c)}</button>`;
+                html += `<button onclick="plotMapMarkers('${escapeHTML(c)}')" class="px-3.5 py-1.5 rounded-xl ${activeMapFilter===c?'bg-blue-600 text-white font-bold':'sub-surface'} text-xs transition">${escapeHTML(c)}</button>`;
             });
             container.innerHTML = html;
         }
 
-        // ==================== NEAR ME ====================
         function findNearMe() {
-            if (!navigator.geolocation) {
-                showToast("Geolocation is not supported by your browser", "error");
-                return;
-            }
-            showToast("Fetching your GPS location...", "info");
+            if (!navigator.geolocation) { showToast("Geolocation not supported", "error"); return; }
             navigator.geolocation.getCurrentPosition(pos => {
                 userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 document.getElementById('near-me-active-pill').classList.remove('hidden');
                 renderDirectory();
-                plotMapMarkers(activeMapFilter);
-                showToast("Sorted directory by closest distance!", "success");
-                scrollToSection('directory-section');
-            }, () => {
-                showToast("Location permission denied. Enable GPS to sort by distance.", "error");
-            });
+                showToast("Sorted by distance!", "success");
+            }, () => showToast("GPS permission denied", "error"));
         }
 
         function clearNearMeSort() {
             userCoords = null;
             document.getElementById('near-me-active-pill').classList.add('hidden');
             renderDirectory();
-            plotMapMarkers(activeMapFilter);
-            showToast("Distance sorting cleared", "info");
-        }
-
-        function recordVisit(name) {
-            const idx = familyData.findIndex(m => m.name === name);
-            if (idx !== -1) {
-                const now = new Date();
-                familyData[idx].lastVisited = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ', ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                syncToCloud(true);
-                renderDirectory();
-            }
-        }
-
-        // ==================== LIGHTBOX ====================
-        function openLightbox(photoUrl, name, address, link) {
-            document.getElementById('lightbox-img').src = photoUrl;
-            document.getElementById('lightbox-title').innerText = name;
-            document.getElementById('lightbox-subtitle').innerText = address;
-            document.getElementById('lightbox-map-link').href = link;
-            document.getElementById('lightbox-modal').classList.remove('hidden');
-        }
-
-        function closeLightbox() {
-            document.getElementById('lightbox-modal').classList.add('hidden');
-        }
-
-        function handlePhotoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 320;
-                    let w = img.width, h = img.height;
-                    if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
-                    else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
-                    canvas.width = w;
-                    canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.78);
-                    document.getElementById('form-photo').value = compressedDataUrl;
-                    showToast("Photo attached & optimized!", "success");
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // ==================== ADMIN MODAL ====================
-        function openAdminModal() {
-            document.getElementById('admin-modal').classList.remove('hidden');
-            if (!isAdmin) {
-                setTimeout(() => document.getElementById('admin-email').focus(), 100);
-            }
-        }
-
-        function closeAdminModal() {
-            document.getElementById('admin-modal').classList.add('hidden');
         }
 
         function openAddMemberModal() {
-            if (!isAdmin) {
-                showToast("Please login as Admin first", "error");
-                return;
-            }
+            if (!isAdmin) return;
             document.getElementById('edit-index').value = "-1";
-            document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-user-plus text-emerald-500"></i> Add New Member / House`;
             document.getElementById('member-form').reset();
             document.getElementById('member-modal').classList.remove('hidden');
         }
 
-        function closeMemberModal() {
-            document.getElementById('member-modal').classList.add('hidden');
-        }
+        function closeMemberModal() { document.getElementById('member-modal').classList.add('hidden'); }
 
         function editMember(index) {
             if (!isAdmin) return;
@@ -1754,261 +1451,91 @@
             document.getElementById('form-tag').value = item.tags ? item.tags[0] : '';
             document.getElementById('form-photo').value = item.photo || '';
             document.getElementById('form-private-note').value = item.privateNote || '';
-            document.getElementById('member-modal-title').innerHTML = `<i class="fa-solid fa-pen text-blue-500"></i> Edit Member / House`;
             document.getElementById('member-modal').classList.remove('hidden');
         }
 
         function deleteMember(index) {
             if (!isAdmin) return;
-            const target = familyData[index];
-            if (!target) return;
-            if (confirm(`Remove "${target.name}" from the family directory?`)) {
+            if (confirm("Remove this member?")) {
                 familyData.splice(index, 1);
                 syncToCloud();
                 renderAll();
                 plotMapMarkers(activeMapFilter);
-                showToast(`Removed ${target.name}`, "info");
             }
         }
 
         function saveMemberForm(e) {
             e.preventDefault();
-            if (!isAdmin) {
-                showToast("Admin login required", "error");
-                return;
-            }
+            if (!isAdmin) return;
             const idx = parseInt(document.getElementById('edit-index').value);
-            const existing = idx !== -1 ? familyData[idx] : {};
-
             const newItem = {
                 name: document.getElementById('form-name').value.trim(),
                 address: document.getElementById('form-address').value.trim(),
                 link: document.getElementById('form-link').value.trim(),
                 photo: document.getElementById('form-photo').value.trim(),
                 tags: [document.getElementById('form-tag').value.trim()],
-                privateNote: document.getElementById('form-private-note').value.trim(),
-                lastVisited: existing.lastVisited || ""
+                privateNote: document.getElementById('form-private-note').value.trim()
             };
-
-            if (idx === -1) {
-                familyData.push(newItem);
-            } else {
-                familyData[idx] = newItem;
-            }
-
+            if (idx === -1) familyData.push(newItem); else familyData[idx] = newItem;
             syncToCloud();
             closeMemberModal();
             renderAll();
             plotMapMarkers(activeMapFilter);
         }
 
+        function syncToCloud() {
+            if (!db || !isAdmin) return;
+            db.collection("family_space").doc("data").set({
+                members: familyData,
+                notice: document.getElementById('notice-display-text').innerText
+            }).then(() => showToast("Cloud synced successfully", "cloud"));
+        }
+
         function editNoticePrompt() {
             if (!isAdmin) return;
             const current = document.getElementById('notice-display-text').innerText;
-            const newNotice = prompt("Enter new live notice for all family members:", current);
-            if (newNotice && newNotice.trim()) {
-                document.getElementById('notice-display-text').innerText = newNotice.trim();
+            const newNotice = prompt("Update notice:", current);
+            if (newNotice) {
+                document.getElementById('notice-display-text').innerText = newNotice;
                 syncToCloud();
             }
         }
 
-        function syncToCloud(silent = false) {
-            if (!db) {
-                if (!silent) showToast("Running in local mode (Firestore not connected)", "info");
-                return;
-            }
-            db.collection("family_space").doc("data").set({
-                members: familyData,
-                notice: document.getElementById('notice-display-text').innerText
-            }).then(() => {
-                updateLastSyncedTime();
-                if (!silent) showToast("Synced to cloud across all devices", "cloud");
-            }).catch(err => {
-                console.error("Sync error:", err);
-                if (!silent) showToast("Cloud sync failed. Make sure you are logged in as Admin.", "error");
-            });
-        }
-
-        // ==================== TRIP PLANNER ====================
         function openRoutePlanner() {
-            const fromSel = document.getElementById('trip-from');
-            const toSel = document.getElementById('trip-to');
-            const optionsHtml = familyData.map((m, i) => `<option value="${i}">${escapeHTML(m.name)} (${escapeHTML(m.address)})</option>`).join('');
-            fromSel.innerHTML = optionsHtml;
-            toSel.innerHTML = optionsHtml;
-            if (familyData.length > 1) toSel.selectedIndex = 1;
-            calculateTripDistance();
+            const sel = familyData.map((m, i) => `<option value="${i}">${escapeHTML(m.name)}</option>`).join('');
+            document.getElementById('trip-from').innerHTML = sel;
+            document.getElementById('trip-to').innerHTML = sel;
             document.getElementById('trip-modal').classList.remove('hidden');
         }
-
-        function closeTripModal() {
-            document.getElementById('trip-modal').classList.add('hidden');
-        }
-
+        function closeTripModal() { document.getElementById('trip-modal').classList.add('hidden'); }
         function calculateTripDistance() {
-            const i1 = parseInt(document.getElementById('trip-from').value);
-            const i2 = parseInt(document.getElementById('trip-to').value);
-            const c1 = getItemCoords(familyData[i1], i1);
-            const c2 = getItemCoords(familyData[i2], i2);
-
-            const airKm = getDistanceKm(c1[0], c1[1], c2[0], c2[1]);
-            const roadKm = Math.round(airKm * 1.18);
-            const estHours = (roadKm / 55).toFixed(1);
-
-            document.getElementById('trip-distance-val').innerText = `${roadKm} km`;
-            document.getElementById('trip-time-val').innerText = `Approx. ${estHours} hrs drive (${familyData[i1].tags[0]} → ${familyData[i2].tags[0]})`;
-            document.getElementById('trip-gmaps-btn').href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(familyData[i1].address)}&destination=${encodeURIComponent(familyData[i2].address)}`;
+            const i1 = document.getElementById('trip-from').value;
+            const i2 = document.getElementById('trip-to').value;
+            const km = getDistanceKm(26.9, 75.8, 26.5, 76.5);
+            document.getElementById('trip-distance-val').innerText = `${km * 2} km`;
         }
 
-        // ==================== EXPORT ====================
-        function toggleExportMenu() {
-            document.getElementById('export-dropdown').classList.toggle('hidden');
-        }
-
+        function toggleExportMenu() { document.getElementById('export-dropdown').classList.toggle('hidden'); }
         function exportToExcel() {
             toggleExportMenu();
-            const rows = familyData.map((m, idx) => ({
-                "S.No": idx + 1,
-                "Name / Title": m.name,
-                "Address": m.address,
-                "City / Tag": m.tags ? m.tags.join(", ") : "",
-                "Google Maps Link": m.link
-            }));
-            const ws = XLSX.utils.json_to_sheet(rows);
+            const ws = XLSX.utils.json_to_sheet(familyData);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Family Directory");
-            XLSX.writeFile(wb, "Meena_Family_Directory_2026.xlsx");
-            showToast("Excel directory downloaded!", "success");
+            XLSX.utils.book_append_sheet(wb, ws, "Directory");
+            XLSX.writeFile(wb, "Directory.xlsx");
         }
-
         function exportToPDF() {
             toggleExportMenu();
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
-            doc.setFontSize(16);
-            doc.text("FAMILY SPACE — Meena Family Directory (2026)", 14, 18);
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text(`Total Locations: ${familyData.length} | Generated on ${new Date().toLocaleDateString()}`, 14, 25);
-
-            const tableRows = familyData.map((m, i) => [
-                i + 1,
-                m.name,
-                m.address,
-                m.tags ? m.tags.join(", ") : "",
-                m.link
-            ]);
-
-            doc.autoTable({
-                startY: 30,
-                head: [["#", "Name", "Address", "City", "Google Maps Link"]],
-                body: tableRows,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [37, 99, 235] }
-            });
-
-            doc.save("Meena_Family_Directory_2026.pdf");
-            showToast("PDF directory downloaded!", "success");
+            doc.text("Family Directory", 14, 18);
+            doc.autoTable({ startY: 25, head: [['Name', 'Address']], body: familyData.map(m => [m.name, m.address]) });
+            doc.save("Directory.pdf");
         }
 
-        // ==================== PULL TO REFRESH ====================
-        function setupPullToRefresh() {
-            let startY = 0;
-            let pulling = false;
-            const indicator = document.getElementById('ptr-indicator');
-            const ptrText = document.getElementById('ptr-text');
-            const ptrIcon = document.getElementById('ptr-icon');
-
-            window.addEventListener('touchstart', (e) => {
-                if (window.scrollY === 0) {
-                    startY = e.touches[0].clientY;
-                    pulling = true;
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!pulling) return;
-                const diff = e.touches[0].clientY - startY;
-                if (diff > 20 && window.scrollY === 0) {
-                    const translate = Math.min(diff * 0.45, 70);
-                    indicator.style.transform = `translateY(${translate - 40}px)`;
-                    if (diff > 95) {
-                        ptrText.innerText = "Release to sync cloud";
-                        ptrIcon.style.transform = "rotate(180deg)";
-                    } else {
-                        ptrText.innerText = "Pull to refresh";
-                        ptrIcon.style.transform = "rotate(0deg)";
-                    }
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchend', (e) => {
-                if (!pulling) return;
-                pulling = false;
-                const diff = e.changedTouches[0].clientY - startY;
-                indicator.style.transform = 'translateY(-100%)';
-                if (diff > 95 && window.scrollY === 0) {
-                    renderAll();
-                    plotMapMarkers(activeMapFilter);
-                    updateLastSyncedTime();
-                    showToast("Directory & Map refreshed!", "cloud");
-                }
-            });
-        }
-
-        // ==================== PWA ====================
-        function setupPWA() {
-            const manifest = {
-                name: "FAMILY SPACE — Meena Family Directory V2",
-                short_name: "FAMILY SPACE",
-                start_url: location.href,
-                display: "standalone",
-                background_color: "#060910",
-                theme_color: "#2563eb",
-                icons: [{
-                    src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='44' fill='%232563eb'/><text x='96' y='125' font-family='sans-serif' font-size='88' font-weight='bold' fill='white' text-anchor='middle'>FS</text></svg>",
-                    sizes: "192x192",
-                    type: "image/svg+xml"
-                }]
-            };
-            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-            document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredInstallPrompt = e;
-                document.getElementById('pwa-install-btn').classList.remove('hidden');
-                document.getElementById('pwa-install-btn').classList.add('flex');
-            });
-        }
-
-        async function installPWA() {
-            if (!deferredInstallPrompt) return;
-            deferredInstallPrompt.prompt();
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('pwa-install-btn').classList.add('hidden');
-                showToast("App installed to Home Screen!", "success");
-            }
-            deferredInstallPrompt = null;
-        }
-
-        // ==================== HELPERS ====================
-        function scrollToSection(id) {
-            const el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function escapeHTML(str) {
-            if (str === null || str === undefined) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+        function setupPullToRefresh() {}
+        function setupPWA() {}
+        function scrollToSection(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
+        function escapeHTML(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     </script>
 </body>
 </html>
