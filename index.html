@@ -1119,7 +1119,7 @@
                 const expiryTime = Date.now() + (durationMins * 60 * 1000);
 
                 const newLiveItem = {
-                    id: 'live_' + Date.now() + '_' + Math.random().toString(36.substring(2, 7)),
+                    id: 'live_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
                     uid: currentUser.uid,
                     name: currentUser.displayName || currentUser.email.split('@')[0],
                     email: currentUser.email,
