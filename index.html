@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#060910" id="theme-color-meta">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FAMILY SPACE">
-    <title>FAMILY SPACE v0.1 — Meena Family Live Directory</title>
+    <meta name="apple-mobile-web-app-title" content="FAMILY SPACE V2">
+    <title>FAMILY SPACE v2.0 — Meena Family Live Directory & Portal</title>
 
     <link rel="manifest" id="pwa-manifest">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232563eb'/><text x='50' y='67' font-family='sans-serif' font-size='48' font-weight='bold' fill='white' text-anchor='middle'>FS</text></svg>">
@@ -176,13 +176,13 @@
                 <div>
                     <div class="flex items-center gap-2 flex-wrap">
                         <h1 class="font-extrabold text-base sm:text-lg tracking-tight">FAMILY SPACE</h1>
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500">v0.1</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500">v2.0</span>
                         <span id="cloud-status-badge" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/25 flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                             <span id="cloud-status-text">Connecting...</span>
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Meena Family Live Directory • 2026</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Meena Family Live Directory & Portal • 2026</p>
                 </div>
             </div>
 
@@ -195,6 +195,12 @@
                 <button onclick="findNearMe()" id="near-me-btn" class="px-3 sm:px-3.5 py-2 rounded-xl sub-surface hover:border-blue-500/40 text-xs font-semibold transition flex items-center gap-2">
                     <i class="fa-solid fa-location-crosshairs text-blue-500"></i>
                     <span class="hidden sm:inline">Near Me</span>
+                </button>
+
+                <!-- User Login / Portal Button -->
+                <button onclick="openUserAuthModal()" id="user-portal-nav-btn" class="px-3 sm:px-3.5 py-2 rounded-xl sub-surface hover:border-emerald-500/40 text-xs font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-circle text-emerald-500"></i>
+                    <span id="user-portal-btn-text">Member Login</span>
                 </button>
 
                 <button onclick="openAdminModal()" class="px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
@@ -220,13 +226,37 @@
                 <div>
                     <span class="text-[10px] uppercase tracking-widest font-bold text-blue-500">Live Notice</span>
                     <p id="notice-display-text" class="text-sm font-medium mt-0.5 leading-relaxed">
-                        Welcome to FAMILY SPACE 2026! Click any marker or card for directions, photos & WhatsApp share.
+                        Welcome to FAMILY SPACE V2! Log in as a member to share live check-ins & messages privately.
                     </p>
                 </div>
             </div>
             <button onclick="editNoticePrompt()" id="edit-notice-btn" class="hidden text-xs text-blue-500 hover:underline font-semibold shrink-0">
                 <i class="fa-solid fa-pen-to-square mr-1"></i> Update Notice
             </button>
+        </div>
+
+        <!-- LOGGED-IN MEMBER QUICK BAR (Visible only to logged in users) -->
+        <div id="member-quick-bar" class="hidden glass rounded-3xl p-6 border border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-blue-500/5">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="current-user-avatar" class="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center font-bold text-white text-lg shadow-lg">U</div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="current-user-name" class="font-bold text-base">Member Name</h3>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500">Verified Member</span>
+                        </div>
+                        <p id="current-user-email" class="text-xs text-slate-400">email@example.com</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+                    <button onclick="openLiveShareModal()" class="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-location-arrow"></i> Send Live Location & Message
+                    </button>
+                    <button onclick="logoutUser()" class="px-4 py-2.5 rounded-xl sub-surface hover:bg-red-500/10 text-red-500 text-xs font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- HERO + STATS -->
@@ -237,7 +267,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-blue-500 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            Private Family Directory
+                            Private Family Directory V2
                         </span>
                         <span id="near-me-active-pill" class="hidden inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-500 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                             <i class="fa-solid fa-compass"></i> Sorted by Distance
@@ -249,7 +279,7 @@
                     </h2>
                     <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-lg leading-relaxed">
                         One family. Multiple cities. One connection.<br>
-                        Explore members, houses & sacred places live across Rajasthan.
+                        Explore members, houses, live check-ins & sacred places across Rajasthan.
                     </p>
                     <div class="flex flex-wrap gap-2.5 sm:gap-3 mt-7">
                         <button onclick="scrollToSection('directory-section')" class="px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
@@ -353,6 +383,25 @@
             </div>
         </div>
 
+        <!-- V2 LIVE MEMBER FEED SECTION (Only fully viewable by logged-in users) -->
+        <div id="live-member-feed-section" class="glass rounded-3xl p-6 border border-blue-500/30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h3 class="font-bold text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-satellite-dish text-emerald-500 animate-pulse"></i> Member Live Check-ins & Messages
+                        <span id="live-feed-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500">0 Active</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Shared live locations and messages from logged-in family members</p>
+                </div>
+                <div id="live-feed-auth-prompt" class="text-xs text-amber-500 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
+                    <i class="fa-solid fa-lock mr-1"></i> Log in as a member to view & send live check-ins
+                </div>
+            </div>
+            <div id="live-feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+
         <!-- MAP SECTION -->
         <div id="map-section" class="glass rounded-3xl p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
@@ -397,7 +446,7 @@
     </main>
 
     <footer class="max-w-7xl mx-auto px-4 lg:px-8 py-8 text-center text-xs text-slate-500 border-t border-slate-200 dark:border-white/5 mt-6 space-y-1.5">
-        <p class="font-medium">FAMILY SPACE v0.1 • Secured Live Family Portal • Meena Family © 2026</p>
+        <p class="font-medium">FAMILY SPACE v2.0 • Secured Live Family Portal • Meena Family © 2026</p>
         <p id="last-synced-footer" class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
             <i class="fa-regular fa-clock text-blue-500"></i> Last synced: Connecting...
         </p>
@@ -417,9 +466,9 @@
             <i class="fa-solid fa-calendar-days text-base"></i>
             <span>Events</span>
         </button>
-        <button onclick="openAdminModal()" id="nav-btn-admin" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-slate-500 dark:text-slate-400 font-medium text-[11px]">
-            <i class="fa-solid fa-shield-halved text-base"></i>
-            <span id="mobile-admin-label">Admin</span>
+        <button onclick="openUserAuthModal()" id="nav-btn-user" class="mobile-nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-slate-500 dark:text-slate-400 font-medium text-[11px]">
+            <i class="fa-solid fa-user-circle text-base"></i>
+            <span>Member</span>
         </button>
     </nav>
 
@@ -474,7 +523,93 @@
         </div>
     </div>
 
-    <!-- ==================== ADMIN / LOGIN MODAL ==================== -->
+    <!-- ==================== USER LOGIN / REGISTRATION MODAL (V2) ==================== -->
+    <div id="user-auth-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-emerald-500"></i> 
+                    <span id="user-auth-modal-title">Member Login / Register</span>
+                </h3>
+                <button onclick="closeUserAuthModal()" class="text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex rounded-xl sub-surface p-1 mb-5">
+                <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white transition">Login</button>
+                <button onclick="switchAuthTab('signup')" id="auth-tab-signup" class="flex-1 py-2 rounded-lg text-xs font-semibold text-slate-400 transition">Register</button>
+            </div>
+
+            <div class="space-y-4">
+                <div id="signup-name-field" class="hidden">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Full Name</label>
+                    <input type="text" id="user-signup-name" placeholder="Pankaj Meena"
+                        class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Email (Gmail)</label>
+                    <input type="email" id="user-auth-email" placeholder="member@example.com"
+                        class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Password</label>
+                    <input type="password" id="user-auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleUserAuth()"
+                        class="w-full px-4 py-3 rounded-xl theme-input text-sm focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <button onclick="handleUserAuth()" id="user-auth-btn" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login as Member
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LIVE LOCATION & MESSAGE SENDER MODAL (V2) ==================== -->
+    <div id="live-share-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-location-crosshairs text-emerald-500"></i> Share Live Check-in & Message
+                </h3>
+                <button onclick="closeLiveShareModal()" class="text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="submitLiveShare(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Status Message / Note</label>
+                    <textarea id="live-msg-input" rows="3" required placeholder="e.g. Reached Jaipur safely, staying at Roop Narayan Ji's place..."
+                        class="w-full px-4 py-2.5 rounded-xl theme-input text-xs focus:outline-none focus:border-emerald-500 transition"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Active Duration (Expiry)</label>
+                    <select id="live-duration-select" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-xs">
+                        <option value="1">1 Minute (Quick Check)</option>
+                        <option value="15">15 Minutes</option>
+                        <option value="60">1 Hour</option>
+                        <option value="360">6 Hours</option>
+                        <option value="1440" selected>24 Hours (Full Day)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Target Specific Family Member (Optional)</label>
+                    <select id="live-target-select" class="w-full px-3.5 py-2.5 rounded-xl theme-input text-xs">
+                        <option value="ALL">🌐 Public (Visible to all logged-in members)</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="submit-live-btn" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-satellite-dish"></i> Broadcast Live GPS
+                    </button>
+                    <button type="button" onclick="closeLiveShareModal()" class="px-5 py-3 rounded-xl sub-surface font-semibold text-xs transition">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== ADMIN MODAL ==================== -->
     <div id="admin-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass rounded-3xl p-6 max-w-md w-full shadow-2xl">
             <div class="flex items-center justify-between mb-5">
@@ -622,6 +757,8 @@
         };
 
         let isAdmin = false;
+        let currentUser = null; // V2: Regular logged-in member
+        let liveFeedData = []; // V2: Live check-ins & messages
         let isLoading = true;
         let activeMapFilter = 'All';
         let userCoords = null;
@@ -631,6 +768,7 @@
         let db = null;
         let auth = null;
         let deferredInstallPrompt = null;
+        let authMode = 'login'; // 'login' or 'signup'
 
         // ==================== INIT ====================
         window.addEventListener('DOMContentLoaded', () => {
@@ -677,12 +815,11 @@
             if (!map) return;
             if (tileLayer) map.removeLayer(tileLayer);
 
-            // OpenStreetMap standard tiles (Free, No API key required)
-            const tileUrl = theme = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
             tileLayer = L.tileLayer(tileUrl, {
                 maxZoom: 19,
-                attribution: '© OpenStreetMap & contributors'
+                attribution: '© OpenStreetMap contributors'
             }).addTo(map);
         }
 
@@ -735,7 +872,6 @@
         // ==================== FIREBASE + AUTH ====================
         function initFirebase() {
             try {
-                // REPLACE THIS OBJECT WITH YOUR ACTUAL FIREBASE CONFIG FROM FIREBASE CONSOLE
                 const firebaseConfig = {
                     apiKey: "AIzaSyBJeXgHJ5R6Hs7uJ9KgGf13D_1elk1SNd0",
                     authDomain: "family-space-portal.firebaseapp.com",
@@ -745,7 +881,6 @@
                     appId: "1:739307717779:web:c873eaa7e19f7839a53966"
                 };
 
-                // Guard against unconfigured placeholder keys
                 if (firebaseConfig.apiKey.includes("YOUR_ACTUAL") || firebaseConfig.apiKey.length < 20) {
                     console.warn("Firebase API key is not configured. Running in Local Mode.");
                     isLoading = false;
@@ -760,19 +895,30 @@
                 db = firebase.firestore();
                 auth = firebase.auth();
 
-                // Auth state listener
+                // Auth state listener (Handles both Admin & Regular Users)
                 auth.onAuthStateChanged((user) => {
                     if (user) {
-                        isAdmin = true;
-                        updateAdminUI(true, user.email);
+                        currentUser = user;
+                        // Check if admin email or regular user
+                        if (user.email && user.email.includes("admin")) {
+                            isAdmin = true;
+                            updateAdminUI(true, user.email);
+                        } else {
+                            isAdmin = false;
+                            updateAdminUI(false);
+                        }
+                        updateUserPortalUI(true, user);
                     } else {
+                        currentUser = null;
                         isAdmin = false;
                         updateAdminUI(false);
+                        updateUserPortalUI(false);
                     }
                     renderDirectory();
+                    renderLiveFeed();
                 });
 
-                // Firestore listener
+                // Firestore listener for Family Directory data
                 db.collection("family_space").doc("data").onSnapshot((doc) => {
                     isLoading = false;
                     if (doc.exists) {
@@ -796,6 +942,19 @@
                     updateCloudStatus(false);
                     renderAll();
                 });
+
+                // V2: Firestore listener for Live Feed (Check-ins & Messages)
+                db.collection("family_space").doc("live_feed_data").onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        liveFeedData = data.items || [];
+                        cleanupExpiredLiveItems();
+                        renderLiveFeed();
+                    }
+                }, (err) => {
+                    console.error("Live feed snapshot error:", err);
+                });
+
             } catch (e) {
                 console.error("Firebase initialization error:", e);
                 isLoading = false;
@@ -804,9 +963,283 @@
             }
         }
 
+        // ==================== V2 USER PORTAL & AUTH FUNCTIONS ====================
+        function openUserAuthModal() {
+            document.getElementById('user-auth-modal').classList.remove('hidden');
+        }
+
+        function closeUserAuthModal() {
+            document.getElementById('user-auth-modal').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            authMode = tab;
+            const loginBtn = document.getElementById('auth-tab-login');
+            const signupBtn = document.getElementById('auth-tab-signup');
+            const nameField = document.getElementById('signup-name-field');
+            const authBtn = document.getElementById('user-auth-btn');
+
+            if (tab === 'login') {
+                loginBtn.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-blue-600 text-white transition";
+                signupBtn.className = "flex-1 py-2 rounded-lg text-xs font-semibold text-slate-400 transition";
+                nameField.classList.add('hidden');
+                authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login as Member`;
+            } else {
+                signupBtn.className = "flex-1 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white transition";
+                loginBtn.className = "flex-1 py-2 rounded-lg text-xs font-semibold text-slate-400 transition";
+                nameField.classList.remove('hidden');
+                authBtn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Register Member Account`;
+            }
+        }
+
+        function handleUserAuth() {
+            if (!auth) {
+                showToast("Firebase Auth not initialized", "error");
+                return;
+            }
+            const email = document.getElementById('user-auth-email').value.trim();
+            const password = document.getElementById('user-auth-password').value;
+            const name = document.getElementById('user-signup-name').value.trim();
+
+            if (!email || !password) {
+                showToast("Please enter email and password", "error");
+                return;
+            }
+
+            const btn = document.getElementById('user-auth-btn');
+            btn.disabled = true;
+
+            if (authMode === 'login') {
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Logging in...`;
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        showToast("Successfully logged in as member!", "success");
+                        closeUserAuthModal();
+                    })
+                    .catch(err => {
+                        showToast("Login failed: " + err.message, "error");
+                    })
+                    .finally(() => btn.disabled = false);
+            } else {
+                if (!name) {
+                    showToast("Please enter your name", "error");
+                    btn.disabled = false;
+                    return;
+                }
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registering...`;
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((res) => {
+                        return res.user.updateProfile({ displayName: name });
+                    })
+                    .then(() => {
+                        showToast("Member account created successfully!", "success");
+                        closeUserAuthModal();
+                    })
+                    .catch(err => {
+                        showToast("Registration failed: " + err.message, "error");
+                    })
+                    .finally(() => btn.disabled = false);
+            }
+        }
+
+        function logoutUser() {
+            if (!auth) return;
+            auth.signOut().then(() => {
+                showToast("Logged out successfully", "info");
+            });
+        }
+
+        function updateUserPortalUI(loggedIn, user = null) {
+            const navBtn = document.getElementById('user-portal-nav-btn');
+            const btnText = document.getElementById('user-portal-btn-text');
+            const quickBar = document.getElementById('member-quick-bar');
+            const feedPrompt = document.getElementById('live-feed-auth-prompt');
+
+            if (loggedIn && user) {
+                btnText.innerText = user.displayName || user.email.split('@')[0];
+                navBtn.className = "px-3 sm:px-3.5 py-2 rounded-xl bg-emerald-600/15 border border-emerald-500/30 text-emerald-500 text-xs font-semibold transition flex items-center gap-2";
+                quickBar.classList.remove('hidden');
+                feedPrompt.classList.add('hidden');
+
+                document.getElementById('current-user-name').innerText = user.displayName || "Family Member";
+                document.getElementById('current-user-email').innerText = user.email;
+                document.getElementById('current-user-avatar').innerText = (user.displayName || user.email).charAt(0).toUpperCase();
+            } else {
+                btnText.innerText = "Member Login";
+                navBtn.className = "px-3 sm:px-3.5 py-2 rounded-xl sub-surface hover:border-emerald-500/40 text-xs font-semibold transition flex items-center gap-2";
+                quickBar.classList.add('hidden');
+                feedPrompt.classList.remove('hidden');
+            }
+            renderLiveFeed();
+        }
+
+        // ==================== V2 LIVE LOCATION & MESSAGE SHARING ====================
+        function openLiveShareModal() {
+            if (!currentUser) {
+                openUserAuthModal();
+                showToast("Please login first to share location", "info");
+                return;
+            }
+            // Populate target family members dropdown
+            const targetSelect = document.getElementById('live-target-select');
+            let options = '<option value="ALL">🌐 Public (Visible to all logged-in members)</option>';
+            familyData.forEach(m => {
+                options += `<option value="${escapeHTML(m.name)}">${escapeHTML(m.name)} (${escapeHTML(m.address)})</option>`;
+            });
+            targetSelect.innerHTML = options;
+            document.getElementById('live-share-modal').classList.remove('hidden');
+        }
+
+        function closeLiveShareModal() {
+            document.getElementById('live-share-modal').classList.add('hidden');
+        }
+
+        function submitLiveShare(e) {
+            e.preventDefault();
+            if (!currentUser) {
+                showToast("Authentication required", "error");
+                return;
+            }
+            if (!navigator.geolocation) {
+                showToast("Geolocation not supported", "error");
+                return;
+            }
+
+            const msg = document.getElementById('live-msg-input').value.trim();
+            const durationMins = parseInt(document.getElementById('live-duration-select').value);
+            const target = document.getElementById('live-target-select').value;
+            const submitBtn = document.getElementById('submit-live-btn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Fetching GPS...`;
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const expiryTime = Date.now() + (durationMins * 60 * 1000);
+
+                const newLiveItem = {
+                    id: 'live_' + Date.now() + '_' + Math.random().toString(36.substring(2, 7)),
+                    uid: currentUser.uid,
+                    name: currentUser.displayName || currentUser.email.split('@')[0],
+                    email: currentUser.email,
+                    photo: currentUser.photoURL || "",
+                    lat: lat,
+                    lng: lng,
+                    message: msg,
+                    target: target,
+                    timestamp: Date.now(),
+                    expiry: expiryTime
+                };
+
+                liveFeedData.unshift(newLiveItem);
+                syncLiveFeedToCloud();
+                closeLiveShareModal();
+                document.getElementById('live-msg-input').value = '';
+                showToast("Live check-in & message broadcasted!", "success");
+            }, err => {
+                showToast("GPS Error: Enable location permission", "error");
+            }, { enableHighAccuracy: true });
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Broadcast Live GPS`;
+        }
+
+        function cleanupExpiredLiveItems() {
+            const now = Date.now();
+            const initialCount = liveFeedData.length;
+            liveFeedData = liveFeedData.filter(item => item.expiry > now);
+            if (liveFeedData.length !== initialCount && db) {
+                syncLiveFeedToCloud(true);
+            }
+        }
+
+        function syncLiveFeedToCloud(silent = false) {
+            if (!db) return;
+            db.collection("family_space").doc("live_feed_data").set({
+                items: liveFeedData
+            }).then(() => {
+                if (!silent) renderLiveFeed();
+            }).catch(err => {
+                console.error("Live feed sync error:", err);
+            });
+        }
+
+        function deleteLiveItem(itemId) {
+            liveFeedData = liveFeedData.filter(i => i.id !== itemId);
+            syncLiveFeedToCloud();
+            showToast("Live check-in removed", "info");
+        }
+
+        function renderLiveFeed() {
+            cleanupExpiredLiveItems();
+            const container = document.getElementById('live-feed-container');
+            const countBadge = document.getElementById('live-feed-count');
+            countBadge.innerText = `${liveFeedData.length} Active`;
+
+            if (!currentUser) {
+                container.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-xs text-slate-400">
+                        <i class="fa-solid fa-lock text-2xl mb-2 text-amber-500"></i>
+                        <p class="font-semibold">Live check-ins and messages are visible only to logged-in family members.</p>
+                        <button onclick="openUserAuthModal()" class="mt-3 px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold">Login as Member</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (liveFeedData.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-xs text-slate-400">
+                        <i class="fa-solid fa-satellite-dish text-2xl mb-2 opacity-50"></i>
+                        <p>No active live check-ins right now. Be the first to share your location!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = liveFeedData.map(item => {
+                const timeAgo = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const isOwner = currentUser && (currentUser.uid === item.uid || isAdmin);
+                const targetText = item.target === 'ALL' ? '🌐 Public' : `🎯 For: ${escapeHTML(item.target)}`;
+
+                return `
+                    <div class="glass rounded-2xl p-4 flex flex-col justify-between gap-3 border border-emerald-500/20">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-600 text-white font-bold flex items-center justify-center shrink-0">
+                                        ${escapeHTML(item.name.charAt(0).toUpperCase())}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm">${escapeHTML(item.name)}</h4>
+                                        <p class="text-[10px] text-slate-400">${escapeHTML(item.email)} • ${timeAgo}</p>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500">${targetText}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 mt-3 leading-relaxed bg-black/5 dark:bg-white/5 p-3 rounded-xl">
+                                "${escapeHTML(item.message)}"
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/5 text-xs">
+                            <a href="https://maps.google.com/?q=${item.lat},${item.lng}" target="_blank" class="text-blue-500 hover:underline font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot"></i> View GPS on Maps
+                            </a>
+                            ${isOwner ? `
+                                <button onclick="deleteLiveItem('${item.id}')" class="text-red-400 hover:text-red-500 text-xs font-semibold">
+                                    <i class="fa-solid fa-trash"></i> Remove
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== ADMIN & OTHER EXISTING FUNCTIONS ====================
         function updateAdminUI(loggedIn, email = '') {
             const btnText = document.getElementById('admin-btn-text');
-            const mobileLabel = document.getElementById('mobile-admin-label');
             const quickActions = document.getElementById('admin-quick-actions');
             const editNoticeBtn = document.getElementById('edit-notice-btn');
             const loginSection = document.getElementById('login-form-section');
@@ -815,7 +1248,6 @@
 
             if (loggedIn) {
                 btnText.innerText = "Admin ✓";
-                mobileLabel.innerText = "Admin ✓";
                 quickActions.classList.remove('hidden');
                 editNoticeBtn.classList.remove('hidden');
                 loginSection.classList.add('hidden');
@@ -824,7 +1256,6 @@
                 modalTitle.innerText = "Admin Panel";
             } else {
                 btnText.innerText = "Admin";
-                mobileLabel.innerText = "Admin";
                 quickActions.classList.add('hidden');
                 editNoticeBtn.classList.add('hidden');
                 loginSection.classList.remove('hidden');
@@ -835,7 +1266,7 @@
 
         function loginAdmin() {
             if (!auth) {
-                showToast("Firebase Auth is not initialized. Check API Key.", "error");
+                showToast("Firebase Auth is not initialized.", "error");
                 return;
             }
             const email = document.getElementById('admin-email').value.trim();
@@ -851,20 +1282,14 @@
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Logging in...`;
 
             auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
+                .then(() => {
                     showToast("Admin login successful!", "success");
                     closeAdminModal();
                     document.getElementById('admin-email').value = '';
                     document.getElementById('admin-password').value = '';
                 })
                 .catch((error) => {
-                    console.error(error);
-                    let msg = "Login failed. Check email & password.";
-                    if (error.code === 'auth/user-not-found') msg = "No admin account found with this email.";
-                    if (error.code === 'auth/wrong-password') msg = "Incorrect password.";
-                    if (error.code === 'auth/invalid-email') msg = "Invalid email format.";
-                    if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key') msg = "Invalid Firebase API Key configured in code.";
-                    showToast(msg, "error");
+                    showToast("Login failed: " + error.message, "error");
                 })
                 .finally(() => {
                     btn.disabled = false;
@@ -877,8 +1302,6 @@
             auth.signOut().then(() => {
                 showToast("Logged out successfully", "info");
                 closeAdminModal();
-            }).catch((error) => {
-                showToast("Logout failed", "error");
             });
         }
 
@@ -1394,10 +1817,6 @@
                 if (!silent) showToast("Running in local mode (Firestore not connected)", "info");
                 return;
             }
-            if (!isAdmin && !silent) {
-                showToast("Only admin can make changes", "error");
-                return;
-            }
             db.collection("family_space").doc("data").set({
                 members: familyData,
                 notice: document.getElementById('notice-display-text').innerText
@@ -1541,7 +1960,7 @@
         // ==================== PWA ====================
         function setupPWA() {
             const manifest = {
-                name: "FAMILY SPACE — Meena Family Directory",
+                name: "FAMILY SPACE — Meena Family Directory V2",
                 short_name: "FAMILY SPACE",
                 start_url: location.href,
                 display: "standalone",
